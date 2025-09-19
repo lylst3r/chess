@@ -21,6 +21,9 @@ public class PieceMovesCalculator {
         else if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             return KingMovesCalculator.pieceMoves(board, position);
         }
+        else if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT) {
+            return KnightMovesCalculator.pieceMoves(board, position);
+        }
         return List.of();
     }
 
