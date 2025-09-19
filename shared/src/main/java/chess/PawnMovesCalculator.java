@@ -24,13 +24,19 @@ public class PawnMovesCalculator {
 
         //normal move
         if (board.getPiece(new ChessPosition(i, j)).getTeamColor() == ChessGame.TeamColor.WHITE) {
-            moves = addMovePawn(i, j, 1, 0, moves, board, false); //up
+            if (i+1 == 8) {
+                moves = addMovePawn(i, j, 1, 0, moves, board, true); //up
+            } else {
+                moves = addMovePawn(i, j, 1, 0, moves, board, false); //up
+            }
         }
         else if (board.getPiece(new ChessPosition(i, j)).getTeamColor() == ChessGame.TeamColor.BLACK) {
-            moves = addMovePawn(i, j, -1, 0, moves, board, false); //up
+            if (i-1 == 1) {
+                moves = addMovePawn(i, j, -1, 0, moves, board, true); //down
+            } else {
+                moves = addMovePawn(i, j, -1, 0, moves, board, false); //down
+            }
         }
-
-
         return moves;
     }
 
@@ -43,10 +49,18 @@ public class PawnMovesCalculator {
                 //if diagonals occupied by the opposite team move is allowed
                 if (r+1 <= 8 && c-1 >= 1 && c+1 <= 8) {
                     if (checkSpot(startRow, startCol, r+1, c-1, board) == 2) {
-                        m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c-1), null));
+                        if (promotion) {
+                            m = addPromotionMoves(startRow, startCol, 1, -1, m, board);
+                        } else {
+                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c-1), null));
+                        }
                     }
                     if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
-                        m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c+1), null));
+                        if (promotion) {
+                            m = addPromotionMoves(startRow, startCol, 1, 1, m, board);
+                        } else {
+                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c+1), null));
+                        }
                     }
                 }
 
@@ -56,8 +70,11 @@ public class PawnMovesCalculator {
                 if (checkSpot(startRow, startCol, r, c, board) != 0) {
                     return m;
                 }
-                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
-
+                if (promotion) {
+                    m = addPromotionMoves(startRow, startCol, dr, dc, m, board);
+                } else {
+                    m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
+                }
                 if (startRow == 2 && checkSpot(startRow, startCol, r+1, c, board) == 0) {
                     m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c), null));
                 }
@@ -71,10 +88,18 @@ public class PawnMovesCalculator {
                 //if diagonals occupied by the opposite team move is allowed
                 if (r-1 >= 1 && c-1 >= 1 && c+1 <= 8) {
                     if (checkSpot(startRow, startCol, r-1, c-1, board) == 2) {
-                        m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c-1), null));
+                        if (promotion) {
+                            m = addPromotionMoves(startRow, startCol, -1, -1, m, board);
+                        } else {
+                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c-1), null));
+                        }
                     }
                     if (checkSpot(startRow, startCol, r-1, c+1, board) == 2) {
-                        m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c+1), null));
+                        if (promotion) {
+                            m = addPromotionMoves(startRow, startCol, -1, 1, m, board);
+                        } else {
+                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c+1), null));
+                        }
                     }
                 }
 
@@ -84,7 +109,11 @@ public class PawnMovesCalculator {
                 if (checkSpot(startRow, startCol, r, c, board) != 0) {
                     return m;
                 }
-                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
+                if (promotion) {
+                    m = addPromotionMoves(startRow, startCol, dr, dc, m, board);
+                } else {
+                    m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
+                }
 
                 if (startRow == 7 && checkSpot(startRow, startCol, r-1, c, board) == 0) {
                     m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c), null));
@@ -92,30 +121,6 @@ public class PawnMovesCalculator {
             }
         }
 
-        /*int startRow = r;
-        int startCol = c;
-        if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
-
-            //if diagonals occupied by the opposite team move is allowed
-            if (checkSpot(startRow, startCol, r+1, c-1, board) == 2) {
-                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c-1), null));
-            }
-            if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
-                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c+1), null));
-            }
-
-            //normal move option
-            r = startRow + dr;
-            c = startCol + dc;
-            if (checkSpot(startRow, startCol, r, c, board) != 0) {
-                return m;
-            }
-            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
-
-            if (startRow == 2 && checkSpot(startRow, startCol, r+1, c, board) == 0) {
-                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c), null));
-            }
-        }*/
         return m;
     }
 
@@ -134,5 +139,22 @@ public class PawnMovesCalculator {
             return 0;
         }
         return 4;
+    }
+
+    public static ArrayList<ChessMove> addPromotionMoves(int r, int c, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board) {
+        int startRow = r;
+        int startCol = c;
+        if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
+            r = r + dr;
+            c = c + dc;
+            if (board.isTaken(new ChessPosition(r, c)) && board.getPiece(new ChessPosition(startRow, startCol)).getTeamColor() == board.getPiece(new ChessPosition(r, c)).getTeamColor()) {
+                return m;
+            }
+            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), ChessPiece.PieceType.QUEEN));
+            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), ChessPiece.PieceType.BISHOP));
+            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), ChessPiece.PieceType.ROOK));
+            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), ChessPiece.PieceType.KNIGHT));
+        }
+        return m;
     }
 }
