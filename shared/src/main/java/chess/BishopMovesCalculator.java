@@ -23,19 +23,4 @@ public class BishopMovesCalculator {
 
         return moves;
     }
-
-    /*public static ArrayList<ChessMove> addMoves(int r, int c, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board) {
-        int startRow = r;
-        int startCol = c;
-        while(r > 1 && r < 8 && c > 1 && c < 8) {
-            r = r + dr;
-            c = c + dc;
-            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
-            if (board.isTaken(new ChessPosition(r,c)) == 1) {
-                break;
-            }
-
-        }
-        return m;
-    }*/
 }
