@@ -47,21 +47,27 @@ public class PawnMovesCalculator {
             if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
 
                 //if diagonals occupied by the opposite team move is allowed
-                if (r+1 <= 8 && c-1 >= 1 && c+1 <= 8) {
-                    if (checkSpot(startRow, startCol, r+1, c-1, board) == 2) {
-                        if (promotion) {
-                            m = addPromotionMoves(startRow, startCol, 1, -1, m, board);
-                        } else {
-                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c-1), null));
+                if (r+1 <= 8) {
+                    if (c-1 >= 1) {
+                        if (checkSpot(startRow, startCol, r+1, c-1, board) == 2) {
+                            if (promotion) {
+                                m = addPromotionMoves(startRow, startCol, 1, -1, m, board);
+                            } else {
+                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c-1), null));
+                            }
                         }
                     }
-                    if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
-                        if (promotion) {
-                            m = addPromotionMoves(startRow, startCol, 1, 1, m, board);
-                        } else {
-                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c+1), null));
+
+                    if (c+1 <= 8) {
+                        if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
+                            if (promotion) {
+                                m = addPromotionMoves(startRow, startCol, 1, 1, m, board);
+                            } else {
+                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c+1), null));
+                            }
                         }
                     }
+
                 }
 
                 //normal move option
@@ -86,19 +92,23 @@ public class PawnMovesCalculator {
             if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
 
                 //if diagonals occupied by the opposite team move is allowed
-                if (r-1 >= 1 && c-1 >= 1 && c+1 <= 8) {
-                    if (checkSpot(startRow, startCol, r-1, c-1, board) == 2) {
-                        if (promotion) {
-                            m = addPromotionMoves(startRow, startCol, -1, -1, m, board);
-                        } else {
-                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c-1), null));
+                if (r-1 >= 1) {
+                    if (c-1 >= 1) {
+                        if (checkSpot(startRow, startCol, r-1, c-1, board) == 2) {
+                            if (promotion) {
+                                m = addPromotionMoves(startRow, startCol, -1, -1, m, board);
+                            } else {
+                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c-1), null));
+                            }
                         }
                     }
-                    if (checkSpot(startRow, startCol, r-1, c+1, board) == 2) {
-                        if (promotion) {
-                            m = addPromotionMoves(startRow, startCol, -1, 1, m, board);
-                        } else {
-                            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c+1), null));
+                    if (c+1 <= 8) {
+                        if (checkSpot(startRow, startCol, r-1, c+1, board) == 2) {
+                            if (promotion) {
+                                m = addPromotionMoves(startRow, startCol, -1, 1, m, board);
+                            } else {
+                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c+1), null));
+                            }
                         }
                     }
                 }
