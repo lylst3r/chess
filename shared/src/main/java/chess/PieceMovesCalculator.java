@@ -18,9 +18,13 @@ public class PieceMovesCalculator {
         else if (piece.getPieceType() == ChessPiece.PieceType.QUEEN) {
             return QueenMovesCalculator.pieceMoves(board, position);
         }
+        else if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+            return KingMovesCalculator.pieceMoves(board, position);
+        }
         return List.of();
     }
 
+    //calculates all moves in one direction
     public static ArrayList<ChessMove> addMoves(int r, int c, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board) {
         int startRow = r;
         int startCol = c;
@@ -35,6 +39,21 @@ public class PieceMovesCalculator {
                 break;
             }
 
+        }
+        return m;
+    }
+
+    //calculates one move in any direction
+    public static ArrayList<ChessMove> addMove(int r, int c, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board) {
+        int startRow = r;
+        int startCol = c;
+        if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
+            r = r + dr;
+            c = c + dc;
+            if (board.isTaken(new ChessPosition(r, c)) && board.getPiece(new ChessPosition(startRow, startCol)).getTeamColor() == board.getPiece(new ChessPosition(r, c)).getTeamColor()) {
+                return m;
+            }
+            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), null));
         }
         return m;
     }
