@@ -13,15 +13,6 @@ public class PawnMovesCalculator {
         int i = position.getRow();
         int j = position.getColumn();
 
-        //if first move can move two
-
-
-        //promotion
-        /*if (i+1 == 8) {
-            moves = addMovePawn(i, j, 1, 0, moves, board, true); //up
-            return moves;
-        }*/
-
         //normal move
         if (board.getPiece(new ChessPosition(i, j)).getTeamColor() == ChessGame.TeamColor.WHITE) {
             if (i+1 == 8) {
