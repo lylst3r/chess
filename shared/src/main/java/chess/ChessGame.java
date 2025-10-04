@@ -104,7 +104,13 @@ public class ChessGame {
                 ChessPiece piece = board.getPiece(position);
                 if (piece != null) {
                     if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
-
+                        //get all moves from other team & check if one can move to the king's position
+                        ArrayList<ChessMove> otherTeamMoves = allTeamValidMoves(teamColor);
+                        for (int k = 0; k < otherTeamMoves.size(); k++) {
+                            if (otherTeamMoves.get(k).getStartPosition().equals(position)) {
+                                return true;
+                            }
+                        }
                     }
                 }
             }
@@ -154,7 +160,7 @@ public class ChessGame {
         return board;
     }
 
-    public Collection<ChessMove> allTeamValidMoves(TeamColor teamColor) {
+    public ArrayList<ChessMove> allTeamValidMoves(TeamColor teamColor) {
         ArrayList<ChessMove> validMoves = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j <= 8; j++) {
