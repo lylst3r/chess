@@ -58,19 +58,19 @@ public class ChessGame {
             Collection<ChessMove> moves = PieceMovesCalculator.pieceMoves(mainBoard, startPosition);
             //check if puts king in check
             Collection<ChessMove> validMoves = new ArrayList<>();
-            ChessBoard tempBoard = new ChessBoard();
-            setAnyBoard(tempBoard, mainBoard);
 
             for (ChessMove move : moves) {
+                ChessBoard tempBoard = new ChessBoard();
+                setAnyBoard(tempBoard, mainBoard);
+
                 //add move to board
                 ChessPosition positionStart = move.getStartPosition();
                 ChessPosition positionEnd = move.getEndPosition();
-                ChessPiece pieceToMove = mainBoard.getPiece(positionStart);
-                mainBoard.movePiece(positionStart, positionEnd, pieceToMove);
-                if (!isInCheck(teamTurn)) {
+                ChessPiece pieceToMove = tempBoard.getPiece(positionStart);
+                tempBoard.movePiece(positionStart, positionEnd, pieceToMove);
+                if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
                     validMoves.add(move);
                 }
-                setBoard(tempBoard);
             }
 
             return validMoves;
@@ -109,6 +109,18 @@ public class ChessGame {
         //find king piece
         ChessPosition position = getKing(teamColor);
         ChessPiece piece = mainBoard.getPiece(position);
+        //get all moves from other team & check if one can move to the king's position
+        ArrayList<ChessPosition> attackingPositions = getAttackingPositions(position, teamColor);
+        if (!attackingPositions.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isInCheckDifBoard(TeamColor teamColor, ChessBoard board) {
+        //find king piece
+        ChessPosition position = getKing(teamColor);
+        ChessPiece piece = board.getPiece(position);
         //get all moves from other team & check if one can move to the king's position
         ArrayList<ChessPosition> attackingPositions = getAttackingPositions(position, teamColor);
         if (!attackingPositions.isEmpty()) {
@@ -275,5 +287,13 @@ public class ChessGame {
     @Override
     public int hashCode() {
         return Objects.hash(teamTurn, mainBoard);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "teamTurn=" + teamTurn +
+                ", mainBoard=" + mainBoard +
+                '}';
     }
 }
