@@ -83,41 +83,54 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPosition startPosition = move.getStartPosition();
-        //ChessPosition endPosition = move.getEndPosition();
-        ChessPiece piece = mainBoard.getPiece(startPosition);
-        //mainBoard.movePiece(startPosition, endPosition, piece);
+        ChessPosition start = move.getStartPosition();
+        ChessPosition end = move.getEndPosition();
+        ChessPiece piece = mainBoard.getPiece(start);
 
         if (piece == null) {
-            throw new InvalidMoveException("No piece at position: " + startPosition);
+            throw new InvalidMoveException("No piece at position: " + start);
         }
 
-        if (teamTurn != piece.getTeamColor()) {
+        if (piece.getTeamColor() != teamTurn) {
             throw new InvalidMoveException("Not your turn");
         }
 
-        Collection<ChessMove> valid = validMoves(startPosition);
+        Collection<ChessMove> valid = validMoves(start);
         if (!valid.contains(move)) {
-            //System.out.println("VALID MOVES: " + valid);
-            //System.out.println("TRIED MOVE: " + move);
             throw new InvalidMoveException("Invalid move: " + move);
         }
 
-        mainBoard.movePiece(startPosition, move.getEndPosition(), piece);
+        /*//castling
+        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+            int row = start.getRow();
+            // King-side castling
+            if (end.getColumn() - start.getColumn() == 2) {
+                ChessPosition rookStart = new ChessPosition(row, 8);
+                ChessPosition rookEnd = new ChessPosition(row, 6);
+                ChessPiece rook = mainBoard.getPiece(rookStart);
+                mainBoard.movePiece(rookStart, rookEnd, rook);
+            }
 
-        //pawn promotion
+            else if (start.getColumn() - end.getColumn() == 2) {
+                ChessPosition rookStart = new ChessPosition(row, 1);
+                ChessPosition rookEnd = new ChessPosition(row, 4);
+                ChessPiece rook = mainBoard.getPiece(rookStart);
+                mainBoard.movePiece(rookStart, rookEnd, rook);
+            }
+        }*/
+
+        // Move the piece
+        mainBoard.movePiece(start, end, piece);
+
+        // Handle pawn promotion
         if (move.getPromotionPiece() != null) {
-            mainBoard.setPositionNull(move.getEndPosition());
-            ChessPiece promotionPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
-            mainBoard.addPiece(move.getEndPosition(), promotionPiece);
+            mainBoard.setPositionNull(end);
+            ChessPiece promotion = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+            mainBoard.addPiece(end, promotion);
         }
 
-        if (getTeamTurn() == TeamColor.WHITE) {
-            teamTurn = TeamColor.BLACK;
-        }
-        else {
-            teamTurn = TeamColor.WHITE;
-        }
+        // Flip turn
+        teamTurn = (teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
     /**
@@ -245,12 +258,13 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        mainBoard.resetBoard();
+        //mainBoard.resetBoard();
         setAnyBoard(mainBoard, board);
     }
 
     public void setAnyBoard(ChessBoard boardSet, ChessBoard boardSetTo) {
-        boardSet.resetBoard();
+        //boardSet.resetBoard();
+        boardSet.squares = new ChessPiece[8][8];
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 ChessPosition position = new ChessPosition(i, j);
@@ -259,9 +273,9 @@ public class ChessGame {
                     ChessPiece pieceCopy = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
                     boardSet.addPiece(position, pieceCopy);
                 }
-                else {
+                /*else {
                     boardSet.setPositionNull(position);
-                }
+                }*/
             }
         }
     }
