@@ -14,6 +14,7 @@ public class ChessGame {
 
     private TeamColor teamTurn = TeamColor.WHITE;
     private final ChessBoard mainBoard = new ChessBoard();
+    private ChessPosition enPassant = null;
 
     public ChessGame() {
         mainBoard.resetBoard();
@@ -78,49 +79,66 @@ public class ChessGame {
             int row = startPosition.getRow();
 
             // King-side castling
-            ChessPosition fPos = new ChessPosition(row, 6);
-            ChessPosition gPos = new ChessPosition(row, 7);
-            ChessPosition hPos = new ChessPosition(row, 8);
-            ChessPiece rookKingSide = mainBoard.getPiece(hPos);
+            ChessPosition pos1 = new ChessPosition(row, 6);
+            ChessPosition pos2 = new ChessPosition(row, 7);
+            ChessPosition pos3 = new ChessPosition(row, 8);
+            ChessPiece rookKingSide = mainBoard.getPiece(pos3);
 
-            if (rookKingSide != null && rookKingSide.getPieceType() == ChessPiece.PieceType.ROOK && !rookKingSide.hasMoved() && !mainBoard.isTaken(fPos) && !mainBoard.isTaken(gPos) && !isInCheck(piece.getTeamColor())) {
+            if (rookKingSide != null && rookKingSide.getPieceType() == ChessPiece.PieceType.ROOK && !rookKingSide.hasMoved() && !mainBoard.isTaken(pos1) && !mainBoard.isTaken(pos2) && !isInCheck(piece.getTeamColor())) {
 
                 //check?
                 ChessBoard tempBoard = new ChessBoard();
                 setAnyBoard(tempBoard, mainBoard);
                 ChessPiece kingCopy = tempBoard.getPiece(startPosition);
-                tempBoard.movePiece(startPosition, fPos, kingCopy);
+                tempBoard.movePiece(startPosition, pos1, kingCopy);
                 if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
-                    tempBoard.movePiece(fPos, gPos, kingCopy);
+                    tempBoard.movePiece(pos1, pos2, kingCopy);
                     if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
-                        validMoves.add(new ChessMove(startPosition, gPos, null));
+                        validMoves.add(new ChessMove(startPosition, pos2, null));
                     }
                 }
             }
 
             // Queen-side castling
-            ChessPosition bPos = new ChessPosition(row, 2);
-            ChessPosition cPos = new ChessPosition(row, 3);
-            ChessPosition dPos = new ChessPosition(row, 4);
-            ChessPosition aPos = new ChessPosition(row, 1);
-            ChessPiece rookQueenSide = mainBoard.getPiece(aPos);
+            ChessPosition pos4 = new ChessPosition(row, 2);
+            ChessPosition pos5 = new ChessPosition(row, 3);
+            ChessPosition pos6 = new ChessPosition(row, 4);
+            ChessPosition pos7 = new ChessPosition(row, 1);
+            ChessPiece rookQueenSide = mainBoard.getPiece(pos7);
 
-            if (rookQueenSide != null && rookQueenSide.getPieceType() == ChessPiece.PieceType.ROOK && !rookQueenSide.hasMoved() && !mainBoard.isTaken(bPos) && !mainBoard.isTaken(cPos) && !mainBoard.isTaken(dPos) && !isInCheck(piece.getTeamColor())) {
+            if (rookQueenSide != null && rookQueenSide.getPieceType() == ChessPiece.PieceType.ROOK && !rookQueenSide.hasMoved() && !mainBoard.isTaken(pos4) && !mainBoard.isTaken(pos5) && !mainBoard.isTaken(pos6) && !isInCheck(piece.getTeamColor())) {
 
                 //check>
                 ChessBoard tempBoard = new ChessBoard();
                 setAnyBoard(tempBoard, mainBoard);
                 ChessPiece kingCopy = tempBoard.getPiece(startPosition);
-                tempBoard.movePiece(startPosition, dPos, kingCopy);
+                tempBoard.movePiece(startPosition, pos6, kingCopy);
                 if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
-                    tempBoard.movePiece(dPos, cPos, kingCopy);
+                    tempBoard.movePiece(pos6, pos5, kingCopy);
                     if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
-                        validMoves.add(new ChessMove(startPosition, cPos, null));
+                        validMoves.add(new ChessMove(startPosition, pos5, null));
                     }
                 }
             }
         }
 
+        //enpassant
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && enPassant != null) {
+            int direction = -1;
+            if (piece.getTeamColor() == TeamColor.WHITE) {
+                direction = 1;
+            }
+            int pawnRow = startPosition.getRow();
+            int pawnCol = startPosition.getColumn();
+
+            //pawn can capture enpassant if it is next to the en passant target
+            if (pawnRow == enPassant.getRow() - direction &&
+                    Math.abs(pawnCol - enPassant.getColumn()) == 1) {
+                ChessPosition capturePos = new ChessPosition(enPassant.getRow(), enPassant.getColumn());
+                ChessMove enPassantMove = new ChessMove(startPosition, capturePos, null);
+                validMoves.add(enPassantMove);
+            }
+        }
 
         return validMoves;
     }
@@ -170,9 +188,31 @@ public class ChessGame {
             }
         }
 
-        // Move the piece
+        //enpassant move
+        //enPassant = null;
+
+        //check for pawn double step
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && enPassant != null) {
+
+            if (start.getColumn() != (end.getColumn()) && end.equals(enPassant)) {
+                int capturedRow = (piece.getTeamColor() == TeamColor.WHITE) ? end.getRow() - 1 : end.getRow() + 1;
+                ChessPosition capturedPawnPos = new ChessPosition(capturedRow, end.getColumn());
+                mainBoard.setPositionNull(capturedPawnPos);
+            }
+        }
+
+
+        //move the piece
         mainBoard.movePiece(start, end, piece);
         piece.setHasMoved(true);
+
+        //enpassant check if can capture
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(end.getRow() - start.getRow()) == 2) {
+            int enPassantRow = (start.getRow() + end.getRow()) / 2;
+            enPassant = new ChessPosition(enPassantRow, start.getColumn());
+        } else {
+            enPassant = null; // reset if not a double-step pawn
+        }
 
         // Handle pawn promotion
         if (move.getPromotionPiece() != null) {
