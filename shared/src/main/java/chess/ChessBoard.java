@@ -61,8 +61,9 @@ public class ChessBoard {
     public void resetBoard() {
 
         //empty board
-        ChessPiece[][] newBoard = new ChessPiece[8][8];
-        squares = newBoard;
+        //ChessPiece[][] newBoard = new ChessPiece[8][8];
+        //squares = newBoard;
+        squares = new ChessPiece[8][8];
 
         //create white pieces
         ChessPiece whiteRook1 = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);

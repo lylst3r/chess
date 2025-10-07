@@ -52,11 +52,12 @@ public class ChessMove {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(startPosition, chessMove.startPosition) && Objects.equals(endPosition, chessMove.endPosition) && promotionPiece == chessMove.promotionPiece;
+        if (this == o) return true;
+        if (!(o instanceof ChessMove)) return false;
+        ChessMove that = (ChessMove) o;
+        return Objects.equals(startPosition, that.startPosition) &&
+                Objects.equals(endPosition, that.endPosition) &&
+                promotionPiece == that.promotionPiece; // if you have promotion
     }
 
     @Override
