@@ -73,6 +73,55 @@ public class ChessGame {
             }
         }
 
+        //castling
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && !piece.hasMoved()) {
+            int row = startPosition.getRow();
+
+            // King-side castling
+            ChessPosition fPos = new ChessPosition(row, 6);
+            ChessPosition gPos = new ChessPosition(row, 7);
+            ChessPosition hPos = new ChessPosition(row, 8);
+            ChessPiece rookKingSide = mainBoard.getPiece(hPos);
+
+            if (rookKingSide != null && rookKingSide.getPieceType() == ChessPiece.PieceType.ROOK && !rookKingSide.hasMoved() && !mainBoard.isTaken(fPos) && !mainBoard.isTaken(gPos) && !isInCheck(piece.getTeamColor())) {
+
+                //check?
+                ChessBoard tempBoard = new ChessBoard();
+                setAnyBoard(tempBoard, mainBoard);
+                ChessPiece kingCopy = tempBoard.getPiece(startPosition);
+                tempBoard.movePiece(startPosition, fPos, kingCopy);
+                if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
+                    tempBoard.movePiece(fPos, gPos, kingCopy);
+                    if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
+                        validMoves.add(new ChessMove(startPosition, gPos, null));
+                    }
+                }
+            }
+
+            // Queen-side castling
+            ChessPosition bPos = new ChessPosition(row, 2);
+            ChessPosition cPos = new ChessPosition(row, 3);
+            ChessPosition dPos = new ChessPosition(row, 4);
+            ChessPosition aPos = new ChessPosition(row, 1);
+            ChessPiece rookQueenSide = mainBoard.getPiece(aPos);
+
+            if (rookQueenSide != null && rookQueenSide.getPieceType() == ChessPiece.PieceType.ROOK && !rookQueenSide.hasMoved() && !mainBoard.isTaken(bPos) && !mainBoard.isTaken(cPos) && !mainBoard.isTaken(dPos) && !isInCheck(piece.getTeamColor())) {
+
+                //check>
+                ChessBoard tempBoard = new ChessBoard();
+                setAnyBoard(tempBoard, mainBoard);
+                ChessPiece kingCopy = tempBoard.getPiece(startPosition);
+                tempBoard.movePiece(startPosition, dPos, kingCopy);
+                if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
+                    tempBoard.movePiece(dPos, cPos, kingCopy);
+                    if (!isInCheckDifBoard(piece.getTeamColor(), tempBoard)) {
+                        validMoves.add(new ChessMove(startPosition, cPos, null));
+                    }
+                }
+            }
+        }
+
+
         return validMoves;
     }
 
@@ -100,15 +149,16 @@ public class ChessGame {
             throw new InvalidMoveException("Invalid move: " + move);
         }
 
-        /*//castling
+        //castling
         if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             int row = start.getRow();
-            // King-side castling
+
             if (end.getColumn() - start.getColumn() == 2) {
                 ChessPosition rookStart = new ChessPosition(row, 8);
                 ChessPosition rookEnd = new ChessPosition(row, 6);
                 ChessPiece rook = mainBoard.getPiece(rookStart);
                 mainBoard.movePiece(rookStart, rookEnd, rook);
+                rook.setHasMoved(true);
             }
 
             else if (start.getColumn() - end.getColumn() == 2) {
@@ -116,11 +166,13 @@ public class ChessGame {
                 ChessPosition rookEnd = new ChessPosition(row, 4);
                 ChessPiece rook = mainBoard.getPiece(rookStart);
                 mainBoard.movePiece(rookStart, rookEnd, rook);
+                rook.setHasMoved(true);
             }
-        }*/
+        }
 
         // Move the piece
         mainBoard.movePiece(start, end, piece);
+        piece.setHasMoved(true);
 
         // Handle pawn promotion
         if (move.getPromotionPiece() != null) {
