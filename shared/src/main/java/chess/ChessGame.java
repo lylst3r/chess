@@ -16,7 +16,7 @@ public class ChessGame {
     private final ChessBoard mainBoard = new ChessBoard();
 
     public ChessGame() {
-
+        mainBoard.resetBoard();
     }
 
     /**
@@ -193,7 +193,7 @@ public class ChessGame {
         return false;
     }
 
-    public ArrayList<ChessPosition> getAttackingPositions(ChessPosition position, TeamColor teamColor) {
+    /*public ArrayList<ChessPosition> getAttackingPositions(ChessPosition position, TeamColor teamColor) {
         ArrayList<ChessPosition> attackingPositions = new ArrayList<>();
         ArrayList<ChessMove> otherTeamMoves = allTeamValidMoves(teamColor);
         for (ChessMove otherTeamMove : otherTeamMoves) {
@@ -205,7 +205,7 @@ public class ChessGame {
         }
         //System.out.println("attackingPositions: " + attackingPositions);
         return attackingPositions;
-    }
+    }*/
 
     /**
      * Determines if the given team is in checkmate
