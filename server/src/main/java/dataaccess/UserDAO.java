@@ -1,4 +1,4 @@
-package server.dataAccess;
+package dataaccess;
 
 public class UserDAO extends DataAccessDAO{
 }

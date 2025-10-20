@@ -1,4 +1,4 @@
-package server.dataAccess;
+package dataaccess;
 
 public class GameDAO extends DataAccessDAO{
 }
