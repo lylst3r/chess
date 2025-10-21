@@ -1,4 +1,4 @@
 package server.services;
 
-public class JoinGameService extends Service{
+public class JoinGameService {
 }

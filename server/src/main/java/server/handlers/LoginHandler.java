@@ -1,4 +1,4 @@
 package server.handlers;
 
-public class LoginHandler extends Handler{
+public class LoginHandler {
 }

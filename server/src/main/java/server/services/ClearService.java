@@ -1,4 +1,11 @@
 package server.services;
 
-public class ClearService extends Service {
+import dataaccess.DataAccessDAO;
+import dataaccess.UserDAO;
+
+public class ClearService {
+
+    public void clearAll(DataAccessDAO dao) {
+        dao.clear();
+    }
 }

@@ -1,4 +1,4 @@
 package server.handlers;
 
-public class JoinGameHandler extends Handler {
+public class JoinGameHandler {
 }

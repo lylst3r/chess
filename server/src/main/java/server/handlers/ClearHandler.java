@@ -1,4 +1,10 @@
 package server.handlers;
 
-public class ClearHandler extends Handler{
+import server.services.Service;
+
+public class ClearHandler {
+
+    public void clearAll(Service service) {
+        service.clear();
+    }
 }

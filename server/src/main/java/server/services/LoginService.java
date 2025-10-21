@@ -1,4 +1,4 @@
 package server.services;
 
-public class LoginService extends Service{
+public class LoginService{
 }
