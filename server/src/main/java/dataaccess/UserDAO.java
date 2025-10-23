@@ -1,20 +1,10 @@
 package dataaccess;
 
-import java.util.ArrayList;
+import exception.ResponseException;
+import model.UserData;
 
-public class UserDAO {
-    private ArrayList<User> usernames;
-
-    public UserDAO(){
-        usernames = new ArrayList<>();
-    }
-
-    public void createUser(String username, String password, String email) {
-        User user = new User(username, password, email);
-        usernames.add(user);
-    }
-
-    public void clearUsers() {
-        usernames.clear();
-    }
+public interface UserDAO {
+    void createUser(UserData user) throws DataAccessException;
+    UserData getUser(String username) throws DataAccessException;
+    void clearUsers() throws DataAccessException;
 }

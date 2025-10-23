@@ -1,12 +1,15 @@
 package server;
 
-import io.javalin.*;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import exception.ResponseException;
 
+import model.UserData;
 import server.handlers.Handler;
+
+import java.util.Map;
 
 public class Server {
 
@@ -47,9 +50,39 @@ public class Server {
         ctx.json(ex.toJson());
     }
 
-    private void register(Context ctx) throws ResponseException {}
+    private void register(Context ctx) throws ResponseException {
+        Gson gson = new Gson();
+        UserData user = gson.fromJson(ctx.body(), UserData.class);
 
-    private void login(Context ctx) throws ResponseException {}
+        String username = user.username();
+        String password = user.password();
+        String email = user.email();
+
+        //handler.register(username, password, email);
+
+        ctx.status(200);
+    }
+
+    private void login(Context ctx) throws ResponseException {
+        /*Gson gson = new Gson();
+        UserData user = gson.fromJson(ctx.body(), UserData.class);
+
+        String username = user.username();
+        String password = user.password();
+
+        String[] authInfo = handler.login(username, password);
+        if (authInfo.length != 2) {
+            ctx.status(400);
+            return;
+        }
+
+        ctx.json(Map.of(
+                "username", authInfo[0],
+                "authToken", authInfo[1]
+        ));
+
+        ctx.status(200);*/
+    }
 
     private void logout(Context ctx) throws ResponseException {}
 
@@ -59,8 +92,9 @@ public class Server {
 
     private void joinGame(Context ctx) throws ResponseException {}
 
-    private void clear(Context ctx)  {
+    private void clear(Context ctx) throws DataAccessException {
         handler.clear();
         ctx.status(200);
+        ctx.result("");
     }
 }

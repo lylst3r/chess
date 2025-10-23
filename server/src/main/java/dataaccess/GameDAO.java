@@ -1,20 +1,15 @@
 package dataaccess;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class GameDAO {
-    private ArrayList<Game> gameList;
+import model.GameData;
 
-    public GameDAO(){
-        gameList = new ArrayList<>();
-    }
+public interface GameDAO {
 
-    public void createGame(int gameID, String whiteUsername, String blackUsername, String gameName, chess.ChessGame game) {
-        Game gameNew = new Game(gameID, whiteUsername, blackUsername, gameName, game);
-        gameList.add(gameNew);
-    }
+    void createGame(GameData game) throws DataAccessException;
+    GameData getGame(int gameID) throws DataAccessException;
+    List<GameData> listGames() throws DataAccessException;
+    void updateGame(int gameID, GameData updatedGame) throws DataAccessException;
+    void clearGames() throws DataAccessException;
 
-    public void clearGames() {
-        gameList.clear();
-    }
 }

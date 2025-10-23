@@ -1,22 +1,15 @@
 package dataaccess;
 
+import model.UserData;
+import model.GameData;
+import model.AuthData;
+
 //DAO classes mostly CRUD (create, read, update, delete) operations
-public class DataAccessDAO{
+public interface DataAccessDAO {
 
-    UserDAO userDAO;
-    GameDAO gameDAO;
-    AuthDAO authDAO;
+    UserDAO getUserDAO() throws DataAccessException;
+    GameDAO getGameDAO() throws DataAccessException;
+    AuthDAO getAuthDAO() throws DataAccessException;
+    void clearAll() throws DataAccessException;
 
-    public DataAccessDAO(){
-        userDAO = new UserDAO();
-        gameDAO = new GameDAO();
-        authDAO = new AuthDAO();
-
-    }
-
-    public void clear() {
-        userDAO.clearUsers();
-        gameDAO.clearGames();
-        authDAO.clearAuths();
-    }
 }
