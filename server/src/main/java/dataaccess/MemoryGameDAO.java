@@ -29,7 +29,7 @@ public class MemoryGameDAO implements GameDAO {
         return null;
     }
 
-    public List<GameData> listGames() throws DataAccessException {
+    public ArrayList<GameData> listGames() throws DataAccessException {
         return gameList;
     }
 

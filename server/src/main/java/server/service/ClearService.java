@@ -1,13 +1,32 @@
 package server.service;
 
-import dataaccess.DataAccessDAO;
+import dataaccess.MemoryDataAccessDAO;
 import dataaccess.DataAccessException;
+import exception.ResponseException;
 
 public class ClearService {
 
-    public ClearService(){}
+    MemoryDataAccessDAO dao;
 
-    public void clearAll(DataAccessDAO dao) throws DataAccessException {
+    public ClearService(MemoryDataAccessDAO dao) {
+
+        this.dao = dao;
+
+    }
+
+    public void clearAll(String authToken) throws DataAccessException, ResponseException {
+//        if (authToken = null && !authToken.isEmpty()) {
+//            var username = dao.getAuthDAO().getUsername(authToken);
+//            if (username == null) {
+//                throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+//            }
+//        }
+
+        /*if (authToken == null || dao.getAuthDAO().getUsername(authToken) == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        }*/
+
         dao.clearAll();
     }
+
 }

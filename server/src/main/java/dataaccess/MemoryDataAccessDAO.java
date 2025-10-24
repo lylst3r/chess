@@ -29,9 +29,13 @@ public class MemoryDataAccessDAO implements DataAccessDAO {
     }
 
     public void clearAll() throws DataAccessException {
-        userDAO.clearUsers();
-        gameDAO.clearGames();
-        authDAO.clearAuths();
+        try {
+            userDAO.clearUsers();
+            gameDAO.clearGames();
+            authDAO.clearAuths();
+        } catch (Exception e) {
+            throw new DataAccessException("Failed to clear database");
+        }
 
     }
 }

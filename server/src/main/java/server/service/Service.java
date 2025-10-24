@@ -3,6 +3,13 @@ package server.service;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
+import server.service.request.LoginRequest;
+import server.service.request.LogoutRequest;
+import server.service.request.RegisterRequest;
+import server.service.result.ListGamesResult;
+import server.service.result.LoginResult;
+import server.service.result.LoginResult;
+import server.service.result.RegisterResult;
 
 public class Service {
 
@@ -11,24 +18,32 @@ public class Service {
     UserService userService;
     GameService gameService;
 
-    public Service() {
-        dao = new MemoryDataAccessDAO();
-        clearService = new ClearService();
+    public Service(MemoryDataAccessDAO dao) {
+        this.dao = dao;
+        clearService = new ClearService(dao);
         userService = new UserService(dao);
         gameService = new GameService(dao);
     }
 
-    public void clear() throws DataAccessException {
-        clearService.clearAll(dao);
+    public void clear(String authToken) throws DataAccessException, ResponseException {
+        clearService.clearAll(authToken);
 
     }
 
-    /*public String[] login(String username, String password) throws ResponseException {
-        return userService.login(username, password, dao);
+    public LoginResult login(LoginRequest loginRequest) throws ResponseException, DataAccessException {
+        return userService.login(loginRequest);
     }
 
-    public void register(String username, String password, String email) throws ResponseException {
-        userService.register(username, password, email, dao);
-    }*/
+    public RegisterResult register(RegisterRequest registerRequest) throws ResponseException, DataAccessException {
+        return userService.register(registerRequest);
+    }
+
+    public void logout(LogoutRequest logoutRequest) throws ResponseException, DataAccessException {
+        userService.logout(logoutRequest);
+    }
+
+    public ListGamesResult listGames(String authToken) throws ResponseException, DataAccessException {
+        return gameService.listGames(authToken);
+    }
 
 }
