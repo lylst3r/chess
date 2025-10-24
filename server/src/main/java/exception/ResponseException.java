@@ -34,7 +34,7 @@ public class ResponseException extends Exception {
         return new ResponseException(status, message);
     }
 
-    public Code code() {
+    /*public Code code() {
         return code;
     }
 
@@ -46,7 +46,7 @@ public class ResponseException extends Exception {
             case 403 -> Code.Conflict;
             default -> throw new IllegalArgumentException("Unknown HTTP status code: " + httpStatusCode);
         };
-    }
+    }*/
 
     public int toHttpStatusCode() {
         return switch (code) {

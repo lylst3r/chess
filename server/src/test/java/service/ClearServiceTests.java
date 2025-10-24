@@ -25,7 +25,7 @@ public class ClearServiceTests {
     }
 
     @Test
-    void testClear() throws ResponseException, DataAccessException {
+    void testClearAll() throws ResponseException, DataAccessException {
         service.register(new server.service.request.RegisterRequest("lily", "password", "lily@email.com"));
         service.createGame(new server.service.request.CreateGameRequest("lily'sGame"));
 

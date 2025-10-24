@@ -24,14 +24,15 @@ public class UserServiceTests {
         service = new Service(dao);
     }
 
-    void register_succeedsForNewUser() throws ResponseException, DataAccessException {
+    @Test
+    void registerSucceedsForNewUser() throws ResponseException, DataAccessException {
         RegisterResult result = service.register(new RegisterRequest("lily", "password", "lily@email.com"));
         assertNotNull(result.authToken());
         assertEquals("lily", result.username());
     }
 
     @Test
-    void register_failsIfUsernameTaken() throws ResponseException, DataAccessException {
+    void registerFailsIfUsernameTaken() throws ResponseException, DataAccessException {
         service.register(new RegisterRequest("lily", "password", "lily@email.com"));
         assertThrows(ResponseException.class, () -> {
             service.register(new RegisterRequest("kalea", "1234", "kalea@email.com"));
@@ -39,7 +40,7 @@ public class UserServiceTests {
     }
 
     @Test
-    void login_succeedsForExistingUser() throws ResponseException, DataAccessException {
+    void loginSucceedsForExistingUser() throws ResponseException, DataAccessException {
         service.register(new RegisterRequest("unicorn", "5678", "unicorn@email.com"));
         LoginResult result = service.login(new LoginRequest("unicorn", "5678"));
 
@@ -48,7 +49,7 @@ public class UserServiceTests {
     }
 
     @Test
-    void login_failsForWrongPassword() throws ResponseException, DataAccessException {
+    void loginFailsForWrongPassword() throws ResponseException, DataAccessException {
         service.register(new RegisterRequest("toast", "1111", "toast@email.com"));
         assertThrows(ResponseException.class, () -> {
             service.login(new LoginRequest("toast", "0000"));
@@ -56,13 +57,20 @@ public class UserServiceTests {
     }
 
     @Test
-    void logout_removesAuthToken() throws ResponseException, DataAccessException {
+    void logoutRemovesAuthToken() throws ResponseException, DataAccessException {
         RegisterResult r = service.register(new RegisterRequest("potatoes", "ilovepotatoes", "potatoes@email.com"));
         service.logout(new LogoutRequest(r.authToken()));
 
         // Logging out again should fail
         assertThrows(ResponseException.class, () -> {
             service.logout(new LogoutRequest(r.authToken()));
+        });
+    }
+
+    @Test
+    void logoutFailsIfUsernameDoesNotExist() throws ResponseException, DataAccessException {
+        assertThrows(ResponseException.class, () -> {
+            service.logout(new LogoutRequest("nosuchuser"));
         });
     }
 

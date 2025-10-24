@@ -31,6 +31,15 @@ public class PawnMovesCalculator {
         return moves;
     }
 
+    public static ArrayList<ChessMove> checkPromotion(int r, int c, int startRow, int startCol, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board, boolean promotion) {
+        if (promotion) {
+            m = addPromotionMoves(startRow, startCol, dr, dc, m, board);
+        } else {
+            m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+dr, c+dc), null));
+        }
+        return m;
+    }
+
     public static ArrayList<ChessMove> addMovePawn(int r, int c, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board, boolean promotion) {
         if (board.getPiece(new ChessPosition(r, c)).getTeamColor() == ChessGame.TeamColor.WHITE) {
             int startRow = r;
@@ -41,21 +50,13 @@ public class PawnMovesCalculator {
                 if (r+1 <= 8) {
                     if (c-1 >= 1) {
                         if (checkSpot(startRow, startCol, r+1, c-1, board) == 2) {
-                            if (promotion) {
-                                m = addPromotionMoves(startRow, startCol, 1, -1, m, board);
-                            } else {
-                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c-1), null));
-                            }
+                            m = checkPromotion(r, c, startRow, startCol, 1, -1, m, board, promotion);
                         }
                     }
 
                     if (c+1 <= 8) {
                         if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
-                            if (promotion) {
-                                m = addPromotionMoves(startRow, startCol, 1, 1, m, board);
-                            } else {
-                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r+1, c+1), null));
-                            }
+                            m = checkPromotion(r, c, startRow, startCol, 1, 1, m, board, promotion);
                         }
                     }
 
@@ -86,20 +87,12 @@ public class PawnMovesCalculator {
                 if (r-1 >= 1) {
                     if (c-1 >= 1) {
                         if (checkSpot(startRow, startCol, r-1, c-1, board) == 2) {
-                            if (promotion) {
-                                m = addPromotionMoves(startRow, startCol, -1, -1, m, board);
-                            } else {
-                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c-1), null));
-                            }
+                            m = checkPromotion(r, c, startRow, startCol, -1, -1, m, board, promotion);
                         }
                     }
                     if (c+1 <= 8) {
                         if (checkSpot(startRow, startCol, r-1, c+1, board) == 2) {
-                            if (promotion) {
-                                m = addPromotionMoves(startRow, startCol, -1, 1, m, board);
-                            } else {
-                                m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r-1, c+1), null));
-                            }
+                            m = checkPromotion(r, c, startRow, startCol, -1, 1, m, board, promotion);
                         }
                     }
                 }
@@ -128,13 +121,18 @@ public class PawnMovesCalculator {
     //check if spot is taken and if so which team is on it
     public static int checkSpot(int startR, int startC, int r, int c, ChessBoard board) {
         //spot is taken by a piece on the same team
-        if (board.isTaken(new ChessPosition(r, c)) && board.getPiece(new ChessPosition(startR, startC)).getTeamColor() == board.getPiece(new ChessPosition(r, c)).getTeamColor()) {
-            return 1;
+        if (board.isTaken(new ChessPosition(r, c))) {
+            ChessGame.TeamColor teamOne = board.getPiece(new ChessPosition(startR, startC)).getTeamColor();
+            ChessGame.TeamColor teamTwo = board.getPiece(new ChessPosition(r, c)).getTeamColor();
+            if (teamOne.equals(teamTwo)) {
+                return 1;
+            }
+            //spot is taken by a piece on the opposite team
+            else if (!teamOne.equals(teamTwo)) {
+                return 2;
+            }
         }
-        //spot is taken by a piece on the opposite team
-        else if (board.isTaken(new ChessPosition(r, c)) && board.getPiece(new ChessPosition(startR, startC)).getTeamColor() != board.getPiece(new ChessPosition(r, c)).getTeamColor()) {
-            return 2;
-        }
+
         //spot is open
         else if (!board.isTaken(new ChessPosition(r, c))) {
             return 0;
@@ -148,8 +146,12 @@ public class PawnMovesCalculator {
         if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
             r = r + dr;
             c = c + dc;
-            if (board.isTaken(new ChessPosition(r, c)) && board.getPiece(new ChessPosition(startRow, startCol)).getTeamColor() == board.getPiece(new ChessPosition(r, c)).getTeamColor()) {
-                return m;
+            if (board.isTaken(new ChessPosition(r, c))) {
+                ChessGame.TeamColor one = board.getPiece(new ChessPosition(startRow, startCol)).getTeamColor();
+                ChessGame.TeamColor two = board.getPiece(new ChessPosition(r, c)).getTeamColor();
+                if (one.equals(two)) {
+                    return m;
+                }
             }
             m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), ChessPiece.PieceType.QUEEN));
             m.add(new ChessMove(new ChessPosition(startRow, startCol), new ChessPosition(r, c), ChessPiece.PieceType.BISHOP));

@@ -28,7 +28,7 @@ public class GameServiceTests {
     }
 
     @Test
-    void createGame_succeeds() throws ResponseException, DataAccessException {
+    void createGameSucceeds() throws ResponseException, DataAccessException {
         RegisterResult r = service.register(new RegisterRequest("kalea", "1234", "kalea@email.com"));
         CreateGameResult game = service.createGame(new CreateGameRequest("bestGameEver"));
 
@@ -36,14 +36,14 @@ public class GameServiceTests {
     }
 
     @Test
-    void createGame_failsForInvalidAuth() {
+    void createGameFailsForInvalidAuth() {
         assertThrows(ResponseException.class, () -> {
             service.createGame(new CreateGameRequest("coolGame"));
         });
     }
 
     @Test
-    void joinGame_succeeds() throws ResponseException, DataAccessException {
+    void joinGameSucceeds() throws ResponseException, DataAccessException {
         RegisterResult lily = service.register(new RegisterRequest("lily", "password", "lily@email.com"));
         RegisterResult unicorns = service.register(new RegisterRequest("unicorns", "pwd", "unicorns@email.com"));
 
@@ -54,7 +54,7 @@ public class GameServiceTests {
     }
 
     @Test
-    void joinGame_failsIfSpotTaken() throws ResponseException, DataAccessException {
+    void joinGameFailsIfSpotTaken() throws ResponseException, DataAccessException {
         RegisterResult lily = service.register(new RegisterRequest("lily", "pwd", "lily@email.com"));
         RegisterResult potato = service.register(new RegisterRequest("potato", "pwd", "potato@email.com"));
         RegisterResult charlie = service.register(new RegisterRequest("charlie", "pwd", "charlie@email.com"));
@@ -68,12 +68,19 @@ public class GameServiceTests {
     }
 
     @Test
-    void listGames_returnsAllGames() throws ResponseException, DataAccessException {
+    void listGamesReturnsAllGames() throws ResponseException, DataAccessException {
         RegisterResult lily = service.register(new RegisterRequest("lily", "pwd", "lily@email.com"));
         service.createGame(new CreateGameRequest("yay"));
 
         ListGamesResult result = service.listGames(lily.authToken());
         assertEquals(1, result.games().size());
+    }
+
+    @Test
+    void listGamesFailsIfUnauthenticated() throws ResponseException, DataAccessException {
+        assertThrows(ResponseException.class, () -> {
+            service.listGames(null);
+        });
     }
 
 }
