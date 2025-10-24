@@ -14,10 +14,11 @@ public class MemoryGameDAO implements GameDAO {
         gameList = new ArrayList<>();
     }
 
-    public void createGame(GameData game) throws DataAccessException {
-        int id = gameIDCounter++;
-        GameData newGame = new GameData(id, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
+    public int createGame(GameData game) throws DataAccessException {
+        gameIDCounter++;
+        GameData newGame = new GameData(gameIDCounter, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
         gameList.add(newGame);
+        return gameIDCounter;
     }
 
     public GameData getGame(int gameID) throws DataAccessException {

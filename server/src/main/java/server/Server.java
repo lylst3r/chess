@@ -8,6 +8,7 @@ import io.javalin.http.Context;
 import exception.ResponseException;
 
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import server.handlers.Handler;
 import server.service.Service;
@@ -115,7 +116,17 @@ public class Server {
 
     }
 
-    private void createGame(Context ctx) throws ResponseException {}
+    private void createGame(Context ctx) throws ResponseException, DataAccessException {
+        Gson gson = new Gson();
+        AuthData auth = gson.fromJson(ctx.body(), AuthData.class);
+        GameData game = gson.fromJson(ctx.body(), GameData.class);
+
+        String authToken = auth.authToken();
+        String gameName = game.gameName();
+
+        handler.createGame(authToken, gameName);
+        ctx.status(200);
+    }
 
     private void joinGame(Context ctx) throws ResponseException {}
 

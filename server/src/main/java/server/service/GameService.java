@@ -1,10 +1,13 @@
 package server.service;
 
+import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
+import server.service.request.CreateGameRequest;
+import server.service.result.CreateGameResult;
 import server.service.result.ListGamesResult;
 
 import java.util.ArrayList;
@@ -21,14 +24,17 @@ public class GameService {
 
     }
 
-    public ListGamesResult listGames(String authToken) throws ResponseException, DataAccessException {
-        AuthData auth = dao.getAuthDAO().getAuth(authToken);
-        if (auth == null) {
-            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
-        }
-        String username = auth.username();
+    public ListGamesResult listGames() throws ResponseException, DataAccessException {
         ArrayList<GameData> games = dao.getGameDAO().listGames();
         ListGamesResult result = new ListGamesResult(games);
+        return result;
+    }
+
+    public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
+        ChessGame chessGame = new ChessGame();
+        GameData game = new GameData(0, null, null, request.gameName(), chessGame);
+        int gameID = dao.getGameDAO().createGame(game);;
+        CreateGameResult result = new CreateGameResult(gameID);
         return result;
     }
 }

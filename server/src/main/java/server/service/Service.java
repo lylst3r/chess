@@ -3,13 +3,14 @@ package server.service;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
+import model.AuthData;
+import model.GameData;
+import server.service.request.CreateGameRequest;
 import server.service.request.LoginRequest;
 import server.service.request.LogoutRequest;
 import server.service.request.RegisterRequest;
-import server.service.result.ListGamesResult;
+import server.service.result.*;
 import server.service.result.LoginResult;
-import server.service.result.LoginResult;
-import server.service.result.RegisterResult;
 
 public class Service {
 
@@ -42,8 +43,16 @@ public class Service {
         userService.logout(logoutRequest);
     }
 
+    public AuthData getAuth(String authToken) throws ResponseException, DataAccessException {
+        return dao.getAuthDAO().getAuth(authToken);
+    }
+
     public ListGamesResult listGames(String authToken) throws ResponseException, DataAccessException {
-        return gameService.listGames(authToken);
+        return gameService.listGames();
+    }
+
+    public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
+        return gameService.createGame(request);
     }
 
 }
