@@ -40,4 +40,8 @@ public class MemoryUserDAO implements UserDAO {
         }
         return false;
     }
+
+    public ArrayList<UserData> listUsers() throws DataAccessException {
+        return users;
+    }
 }
