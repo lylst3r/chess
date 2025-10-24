@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
@@ -12,6 +13,7 @@ import model.GameData;
 import model.UserData;
 import server.handlers.Handler;
 import server.service.Service;
+import server.service.request.JoinGameRequest;
 import server.service.result.LoginResult;
 import server.service.result.RegisterResult;
 
@@ -128,7 +130,17 @@ public class Server {
         ctx.status(200);
     }
 
-    private void joinGame(Context ctx) throws ResponseException {}
+    private void joinGame(Context ctx) throws ResponseException, DataAccessException {
+        Gson gson = new Gson();
+        String authToken = ctx.header("authorization");
+        JoinGameRequest request = gson.fromJson(ctx.body(), JoinGameRequest.class);
+        int gameID = request.gameID();
+        String playerColor = request.playerColor();
+
+        handler.joinGame(authToken, request);
+        ctx.status(200);
+
+    }
 
     private void clear(Context ctx) throws DataAccessException, ResponseException {
         Gson gson = new Gson();

@@ -1,9 +1,11 @@
 package server.handlers;
 
+import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import server.service.Service;
+import server.service.request.JoinGameRequest;
 import server.service.result.CreateGameResult;
 import server.service.result.ListGamesResult;
 import server.service.result.LoginResult;
@@ -48,6 +50,10 @@ public class Handler {
 
     public CreateGameResult createGame(String authToken, String gameName) throws ResponseException, DataAccessException {
         return gameHandler.createGame(authToken, gameName);
+    }
+
+    public void joinGame(String authToken, JoinGameRequest request) throws ResponseException, DataAccessException {
+        gameHandler.joinGame(authToken, request);
     }
 
 }

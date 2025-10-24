@@ -5,10 +5,7 @@ import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
-import server.service.request.CreateGameRequest;
-import server.service.request.LoginRequest;
-import server.service.request.LogoutRequest;
-import server.service.request.RegisterRequest;
+import server.service.request.*;
 import server.service.result.*;
 import server.service.result.LoginResult;
 
@@ -53,6 +50,10 @@ public class Service {
 
     public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
         return gameService.createGame(request);
+    }
+
+    public void joinGame(JoinGameRequest request, String username) throws ResponseException, DataAccessException {
+        gameService.joinGame(request, username);
     }
 
 }
