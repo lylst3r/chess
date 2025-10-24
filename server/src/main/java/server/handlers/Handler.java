@@ -27,9 +27,9 @@ public class Handler {
         this.dao = dao;
     }
 
-    public void clear(String authToken) throws DataAccessException, ResponseException {
+    public void clear() throws DataAccessException, ResponseException {
 
-        clearHandler.clearAll(authToken);
+        clearHandler.clearAll();
     }
 
     public LoginResult login(String username, String password) throws ResponseException, DataAccessException {

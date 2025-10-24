@@ -23,8 +23,8 @@ public class Service {
         gameService = new GameService(dao);
     }
 
-    public void clear(String authToken) throws DataAccessException, ResponseException {
-        clearService.clearAll(authToken);
+    public void clear() throws DataAccessException, ResponseException {
+        clearService.clearAll();
 
     }
 

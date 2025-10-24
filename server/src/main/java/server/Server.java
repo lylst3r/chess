@@ -14,9 +14,12 @@ import model.UserData;
 import server.handlers.Handler;
 import server.service.Service;
 import server.service.request.JoinGameRequest;
+import server.service.result.CreateGameResult;
+import server.service.result.ListGamesResult;
 import server.service.result.LoginResult;
 import server.service.result.RegisterResult;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class Server {
@@ -73,6 +76,7 @@ public class Server {
         RegisterResult result = handler.register(username, password, email);
 
         ctx.status(200);
+        ctx.result(gson.toJson(result));
     }
 
     private void login(Context ctx) throws ResponseException, DataAccessException {
@@ -94,69 +98,66 @@ public class Server {
         ));
 
         ctx.status(200);
+        ctx.result(gson.toJson(result));
     }
 
     private void logout(Context ctx) throws ResponseException, DataAccessException {
         Gson gson = new Gson();
-        AuthData auth = gson.fromJson(ctx.body(), AuthData.class);
-
-        String authToken = auth.authToken();
+        String authToken = ctx.header("authorization");
 
         handler.logout(authToken);
         ctx.status(200);
+        ctx.result("");
 
     }
 
     private void listGames(Context ctx) throws ResponseException, DataAccessException {
         Gson gson = new Gson();
-        AuthData auth = gson.fromJson(ctx.body(), AuthData.class);
+        String authToken = ctx.header("authorization");
 
-        String authToken = auth.authToken();
-
-        handler.listGames(authToken);
+        ListGamesResult result = handler.listGames(authToken);
         ctx.status(200);
+        ctx.result(gson.toJson(result));
 
     }
 
     private void createGame(Context ctx) throws ResponseException, DataAccessException {
         Gson gson = new Gson();
-        AuthData auth = gson.fromJson(ctx.body(), AuthData.class);
+        String authToken = ctx.header("authorization");
         GameData game = gson.fromJson(ctx.body(), GameData.class);
-
-        String authToken = auth.authToken();
         String gameName = game.gameName();
 
-        handler.createGame(authToken, gameName);
+        CreateGameResult result = handler.createGame(authToken, gameName);
         ctx.status(200);
+        ctx.result(gson.toJson(result));
     }
 
     private void joinGame(Context ctx) throws ResponseException, DataAccessException {
         Gson gson = new Gson();
         String authToken = ctx.header("authorization");
         JoinGameRequest request = gson.fromJson(ctx.body(), JoinGameRequest.class);
-        int gameID = request.gameID();
-        String playerColor = request.playerColor();
 
         handler.joinGame(authToken, request);
         ctx.status(200);
+        ctx.result("");
 
     }
 
     private void clear(Context ctx) throws DataAccessException, ResponseException {
-        Gson gson = new Gson();
-        String authToken = null;
+//        Gson gson = new Gson();
+//        String authToken = null;
+//
+//        String headerToken = ctx.header("authorization");
+//        if (headerToken != null && !headerToken.isEmpty()) {
+//            authToken = headerToken;
+//        } else if (ctx.body() != null && !ctx.body().isEmpty()) {
+//            AuthData auth = gson.fromJson(ctx.body(), AuthData.class);
+//            if (auth != null) {
+//                authToken = auth.authToken();
+//            }
+//        }
 
-        String headerToken = ctx.header("authorization");
-        if (headerToken != null && !headerToken.isEmpty()) {
-            authToken = headerToken;
-        } else if (ctx.body() != null && !ctx.body().isEmpty()) {
-            AuthData auth = gson.fromJson(ctx.body(), AuthData.class);
-            if (auth != null) {
-                authToken = auth.authToken();
-            }
-        }
-
-        handler.clear(authToken);
+        handler.clear();
         ctx.status(200);
         ctx.result("");
     }

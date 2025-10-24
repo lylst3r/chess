@@ -17,7 +17,7 @@ public class ClearHandler {
         this.dao = dao;
     }
 
-    public void clearAll(String authToken) throws DataAccessException, ResponseException {
-        service.clear(authToken);
+    public void clearAll() throws DataAccessException, ResponseException {
+        service.clear();
     }
 }

@@ -14,7 +14,7 @@ public class ClearService {
 
     }
 
-    public void clearAll(String authToken) throws DataAccessException, ResponseException {
+    public void clearAll() throws DataAccessException, ResponseException {
 //        if (authToken = null && !authToken.isEmpty()) {
 //            var username = dao.getAuthDAO().getUsername(authToken);
 //            if (username == null) {
