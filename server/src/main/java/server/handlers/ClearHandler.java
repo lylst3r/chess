@@ -8,8 +8,8 @@ import server.service.Service;
 
 public class ClearHandler {
 
-    Service service;
-    MemoryDataAccessDAO dao;
+    private final Service service;
+    private final MemoryDataAccessDAO dao;
     private final Gson gson = new Gson();
 
     public ClearHandler(Service service, MemoryDataAccessDAO dao) {

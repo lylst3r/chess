@@ -35,15 +35,17 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     public void updateGame(int gameID, GameData updateGame) throws DataAccessException {
-        if (!gameList.contains(gameID)) {
-            throw new DataAccessException("Game not found");
-        }
-
-        for(int i = 0; i < gameList.size(); i++){
+        boolean gameFound = false;
+        for (int i = 0; i < gameList.size(); i++) {
             GameData game = gameList.get(i);
-            if(game.gameID() == gameID){
+            if (game.gameID() == gameID) {
                 gameList.set(i, updateGame);
+                gameFound = true;
+                break;
             }
+        }
+        if (!gameFound) {
+            throw new DataAccessException("Game not found");
         }
     }
 

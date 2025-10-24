@@ -13,8 +13,8 @@ import server.service.result.RegisterResult;
 //endpoints: register, login/logout
 public class UserHandler {
 
-    Service service;
-    MemoryDataAccessDAO dao;
+    private final Service service;
+    private final MemoryDataAccessDAO dao;
 
     public UserHandler(Service service, MemoryDataAccessDAO dao){
 

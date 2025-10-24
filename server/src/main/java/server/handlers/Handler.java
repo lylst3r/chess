@@ -21,9 +21,9 @@ public class Handler {
 
     public Handler(Service service, MemoryDataAccessDAO dao){
         this.service = service;
-        clearHandler = new ClearHandler(service, dao);
-        userHandler = new UserHandler(service, dao);
-        gameHandler = new GameHandler(service, dao);
+        this.clearHandler = new ClearHandler(service, dao);
+        this.userHandler = new UserHandler(service, dao);
+        this.gameHandler = new GameHandler(service, dao);
         this.dao = dao;
     }
 

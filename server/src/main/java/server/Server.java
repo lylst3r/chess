@@ -35,10 +35,12 @@ public class Server {
         service = new Service(memoryDAO);
         handler  = new Handler(service, memoryDAO);
         gson = new Gson();
-        this.javalin = Javalin.create(config -> config.staticFiles.add("web"))
+        this.javalin = Javalin.create(config -> {
+                    config.staticFiles.add("web");
+                });
 
         // Register your endpoints and exception handlers here.
-            .delete("/db", this::clear)
+            javalin.delete("/db", this::clear)
             .post("/user", this::register)
             .post("/session", this::login)
             .delete("/session", this::logout)

@@ -44,6 +44,12 @@ public class UserService {
 
     public LoginResult login(LoginRequest request) throws ResponseException, DataAccessException {
         String username = request.username();
+        String password = request.password();
+
+        if (username == null || password == null || username.isBlank() || password.isBlank()) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: username or password doesn't exist");
+        }
+
         UserData user = dao.getUserDAO().getUser(username);
         if (user == null || user.password() == null || !user.password().equals(request.password())) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");

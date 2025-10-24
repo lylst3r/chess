@@ -6,7 +6,7 @@ import exception.ResponseException;
 
 public class ClearService {
 
-    MemoryDataAccessDAO dao;
+    private final MemoryDataAccessDAO dao;
 
     public ClearService(MemoryDataAccessDAO dao) {
 

@@ -13,8 +13,8 @@ import server.service.result.ListGamesResult;
 //endpoints: listGames, createGame, joinGame
 public class GameHandler {
 
-    Service service;
-    MemoryDataAccessDAO dao;
+    private final Service service;
+    private final MemoryDataAccessDAO dao;
 
 
     public GameHandler(Service service, MemoryDataAccessDAO dao) {

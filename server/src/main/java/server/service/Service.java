@@ -18,9 +18,9 @@ public class Service {
 
     public Service(MemoryDataAccessDAO dao) {
         this.dao = dao;
-        clearService = new ClearService(dao);
-        userService = new UserService(dao);
-        gameService = new GameService(dao);
+        this.clearService = new ClearService(dao);
+        this.userService = new UserService(dao);
+        this.gameService = new GameService(dao);
     }
 
     public void clear() throws DataAccessException, ResponseException {

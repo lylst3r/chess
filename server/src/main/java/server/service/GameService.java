@@ -17,7 +17,7 @@ import java.util.List;
 //endpoints: listGames, createGame, joinGame
 public class GameService {
 
-    MemoryDataAccessDAO dao = new MemoryDataAccessDAO();
+    private final MemoryDataAccessDAO dao;
 
     public GameService(MemoryDataAccessDAO dao){
 
@@ -45,6 +45,11 @@ public class GameService {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
         }
         String playerColor = request.playerColor();
+        //spectator
+        if (playerColor == null) {
+            return;
+        }
+
         if (playerColor.equals("WHITE") && game.whiteUsername() != null) {
             throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
         }
