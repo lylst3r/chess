@@ -36,9 +36,9 @@ public class GameServiceTests {
     }
 
     @Test
-    void createGameFailsForInvalidAuth() {
+    void createGameFailsForNullName() {
         assertThrows(ResponseException.class, () -> {
-            service.createGame(new CreateGameRequest("coolGame"));
+            service.createGame(new CreateGameRequest(""));
         });
     }
 
@@ -77,7 +77,7 @@ public class GameServiceTests {
     }
 
     @Test
-    void listGamesFailsIfUnauthenticated() throws ResponseException, DataAccessException {
+    void listGamesFailsForBadAuth() throws ResponseException, DataAccessException {
         assertThrows(ResponseException.class, () -> {
             service.listGames(null);
         });

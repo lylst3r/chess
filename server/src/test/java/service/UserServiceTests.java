@@ -35,7 +35,7 @@ public class UserServiceTests {
     void registerFailsIfUsernameTaken() throws ResponseException, DataAccessException {
         service.register(new RegisterRequest("lily", "password", "lily@email.com"));
         assertThrows(ResponseException.class, () -> {
-            service.register(new RegisterRequest("kalea", "1234", "kalea@email.com"));
+            service.register(new RegisterRequest("lily", "1234", "kalea@email.com"));
         });
     }
 

@@ -31,7 +31,8 @@ public class PawnMovesCalculator {
         return moves;
     }
 
-    public static ArrayList<ChessMove> checkPromotion(int r, int c, int startRow, int startCol, int dr, int dc, ArrayList<ChessMove> m, ChessBoard board, boolean promotion) {
+    public static ArrayList<ChessMove> checkPromotion(int r, int c, int startRow, int startCol, int dr, int dc,
+                                                      ArrayList<ChessMove> m, ChessBoard board, boolean promotion) {
         if (promotion) {
             m = addPromotionMoves(startRow, startCol, dr, dc, m, board);
         } else {
@@ -47,19 +48,16 @@ public class PawnMovesCalculator {
             if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
 
                 //if diagonals occupied by the opposite team move is allowed
-                if (r+1 <= 8) {
-                    if (c-1 >= 1) {
-                        if (checkSpot(startRow, startCol, r+1, c-1, board) == 2) {
-                            m = checkPromotion(r, c, startRow, startCol, 1, -1, m, board, promotion);
-                        }
+                if (r+1 <= 8 && c-1 >= 1) {
+                    if (checkSpot(startRow, startCol, r + 1, c - 1, board) == 2) {
+                        m = checkPromotion(r, c, startRow, startCol, 1, -1, m, board, promotion);
                     }
+                }
 
-                    if (c+1 <= 8) {
-                        if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
-                            m = checkPromotion(r, c, startRow, startCol, 1, 1, m, board, promotion);
-                        }
+                if (r+1 <=8 && c+1 <= 8) {
+                    if (checkSpot(startRow, startCol, r+1, c+1, board) == 2) {
+                        m = checkPromotion(r, c, startRow, startCol, 1, 1, m, board, promotion);
                     }
-
                 }
 
                 //normal move option
@@ -84,16 +82,15 @@ public class PawnMovesCalculator {
             if (r+dr >= 1 && r+dr <= 8 && c+dc >= 1 && c+dc <= 8) {
 
                 //if diagonals occupied by the opposite team move is allowed
-                if (r-1 >= 1) {
-                    if (c-1 >= 1) {
-                        if (checkSpot(startRow, startCol, r-1, c-1, board) == 2) {
-                            m = checkPromotion(r, c, startRow, startCol, -1, -1, m, board, promotion);
-                        }
+                if (r-1 >= 1 && c-1 >= 1) {
+                    if (checkSpot(startRow, startCol, r - 1, c - 1, board) == 2) {
+                        m = checkPromotion(r, c, startRow, startCol, -1, -1, m, board, promotion);
                     }
-                    if (c+1 <= 8) {
-                        if (checkSpot(startRow, startCol, r-1, c+1, board) == 2) {
-                            m = checkPromotion(r, c, startRow, startCol, -1, 1, m, board, promotion);
-                        }
+                }
+
+                if (r-1 >= 1 && c+1 <= 8) {
+                    if (checkSpot(startRow, startCol, r-1, c+1, board) == 2) {
+                        m = checkPromotion(r, c, startRow, startCol, -1, 1, m, board, promotion);
                     }
                 }
 

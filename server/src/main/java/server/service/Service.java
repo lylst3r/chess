@@ -45,7 +45,7 @@ public class Service {
     }
 
     public ListGamesResult listGames(String authToken) throws ResponseException, DataAccessException {
-        return gameService.listGames();
+        return gameService.listGames(authToken);
     }
 
     public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {

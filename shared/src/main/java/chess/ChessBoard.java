@@ -47,7 +47,9 @@ public class ChessBoard {
         if (getPiece(position) == null) {
             return false;
         }
-        else return true;
+        else {
+            return true;
+        }
     }
 
     public void setPositionNull(ChessPosition position) {
