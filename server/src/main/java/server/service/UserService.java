@@ -26,7 +26,15 @@ public class UserService {
 
     public RegisterResult register(RegisterRequest request) throws ResponseException, DataAccessException {
         String username = request.username();
+        String password = request.password();
         UserData user = dao.getUserDAO().getUser(username);
+
+        if (username == null || username.isEmpty()) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: username cannot be empty");
+        }
+        if (password == null || password.isEmpty()) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: password cannot be empty");
+        }
 
         if (dao.getUserDAO().usernameTaken(username)){
             throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: username already taken");

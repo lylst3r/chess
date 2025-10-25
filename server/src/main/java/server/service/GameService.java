@@ -33,7 +33,13 @@ public class GameService {
 
     public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
         ChessGame chessGame = new ChessGame();
-        GameData game = new GameData(0, null, null, request.gameName(), chessGame);
+        String gameName = request.gameName();
+
+        if (gameName == null || gameName.isEmpty()) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty");
+        }
+
+        GameData game = new GameData(0, null, null, gameName, chessGame);
         int gameID = dao.getGameDAO().createGame(game);;
         CreateGameResult result = new CreateGameResult(gameID);
         return result;
@@ -41,13 +47,26 @@ public class GameService {
 
     public void joinGame(JoinGameRequest request, String username) throws ResponseException, DataAccessException {
         GameData game = dao.getGameDAO().getGame(request.gameID());
+
         if (game == null) {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
         }
+        String gameName = game.gameName();
+        if (gameName == null || gameName.isEmpty()) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: ame name cannot be empty");
+        }
+
         String playerColor = request.playerColor();
         //spectator
         if (playerColor == null) {
-            return;
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: no color given");
+        }
+
+        playerColor = playerColor.toUpperCase();
+
+        if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: invalid color");
+
         }
 
         if (playerColor.equals("WHITE") && game.whiteUsername() != null) {
