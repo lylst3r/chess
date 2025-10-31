@@ -1,5 +1,6 @@
 package server.handlers;
 
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
@@ -14,10 +15,10 @@ import server.service.result.ListGamesResult;
 public class GameHandler {
 
     private final Service service;
-    private final MemoryDataAccessDAO dao;
+    private final DataAccessDAO dao;
 
 
-    public GameHandler(Service service, MemoryDataAccessDAO dao) {
+    public GameHandler(Service service, DataAccessDAO dao) {
 
         this.service = service;
         this.dao = dao;

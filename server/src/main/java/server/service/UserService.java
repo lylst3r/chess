@@ -1,5 +1,6 @@
 package server.service;
 
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
@@ -16,9 +17,9 @@ import java.util.UUID;
 //endpoints: register, login/logout
 public class UserService {
 
-    private final MemoryDataAccessDAO dao;
+    private final DataAccessDAO dao;
 
-    public UserService(MemoryDataAccessDAO dao) {
+    public UserService(DataAccessDAO dao) {
 
         this.dao = dao;
 

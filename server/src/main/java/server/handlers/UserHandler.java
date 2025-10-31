@@ -1,5 +1,6 @@
 package server.handlers;
 
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
@@ -14,9 +15,9 @@ import server.service.result.RegisterResult;
 public class UserHandler {
 
     private final Service service;
-    private final MemoryDataAccessDAO dao;
+    private final DataAccessDAO dao;
 
-    public UserHandler(Service service, MemoryDataAccessDAO dao){
+    public UserHandler(Service service, DataAccessDAO dao){
 
         this.service = service;
         this.dao = dao;

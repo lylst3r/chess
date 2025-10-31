@@ -1,14 +1,15 @@
 package server.service;
 
+import dataaccess.DataAccessDAO;
 import dataaccess.MemoryDataAccessDAO;
 import dataaccess.DataAccessException;
 import exception.ResponseException;
 
 public class ClearService {
 
-    private final MemoryDataAccessDAO dao;
+    private final DataAccessDAO dao;
 
-    public ClearService(MemoryDataAccessDAO dao) {
+    public ClearService(DataAccessDAO dao) {
 
         this.dao = dao;
 

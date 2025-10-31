@@ -1,6 +1,7 @@
 package server.service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
@@ -17,9 +18,9 @@ import java.util.List;
 //endpoints: listGames, createGame, joinGame
 public class GameService {
 
-    private final MemoryDataAccessDAO dao;
+    private final DataAccessDAO dao;
 
-    public GameService(MemoryDataAccessDAO dao){
+    public GameService(DataAccessDAO dao){
 
         this.dao = dao;
 

@@ -1,6 +1,7 @@
 package server.handlers;
 
 import chess.ChessGame;
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
@@ -17,9 +18,9 @@ public class Handler {
     private final ClearHandler clearHandler;
     private final UserHandler userHandler;
     private final GameHandler gameHandler;
-    private final MemoryDataAccessDAO dao;
+    private final DataAccessDAO dao;
 
-    public Handler(Service service, MemoryDataAccessDAO dao){
+    public Handler(Service service, DataAccessDAO dao){
         this.service = service;
         this.clearHandler = new ClearHandler(service, dao);
         this.userHandler = new UserHandler(service, dao);

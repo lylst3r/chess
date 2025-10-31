@@ -2,6 +2,7 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import io.javalin.Javalin;
@@ -27,13 +28,13 @@ public class Server {
     private final Javalin javalin;
     private final Handler handler;
     private final Service service;
-    private final MemoryDataAccessDAO memoryDAO;
+    private final DataAccessDAO dao;
     private final Gson gson;
 
     public Server() {
-        memoryDAO = new MemoryDataAccessDAO();
-        service = new Service(memoryDAO);
-        handler  = new Handler(service, memoryDAO);
+        dao = new MemoryDataAccessDAO();
+        service = new Service(dao);
+        handler  = new Handler(service, dao);
         gson = new Gson();
         this.javalin = Javalin.create(config -> {
                     config.staticFiles.add("web");

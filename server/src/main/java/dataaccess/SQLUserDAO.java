@@ -1,13 +1,19 @@
 package dataaccess;
 
+import com.google.gson.Gson;
 import exception.ResponseException;
 import model.UserData;
 import org.eclipse.jetty.server.Response;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
+import static java.sql.Types.NULL;
 
 public class SQLUserDAO implements UserDAO {
 
@@ -15,8 +21,10 @@ public class SQLUserDAO implements UserDAO {
         configureDatabase();
     }
 
-    public void createUser(UserData user) throws DataAccessException {
-
+    public void createUser(UserData user) throws ResponseException, DataAccessException {
+        var statement = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
+        String json = new Gson().toJson(user);
+        int id = executeUpdate(statement, user.username(), user.password(), user.email());
     }
 
     public UserData getUser(String username) throws DataAccessException {
@@ -37,11 +45,10 @@ public class SQLUserDAO implements UserDAO {
 
     private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS  pet (
-              `username` varchar(256) NOT NULL,
-              `password` varchar(256) NOT NULL,
-              `email` varchar(256) NOT NULL,
-              `json` TEXT DEFAULT NULL,
+            CREATE TABLE IF NOT EXISTS  user (
+              `username` varchar(255) NOT NULL,
+              `password` varchar(255) NOT NULL,
+              `email` varchar(255) NOT NULL,
               PRIMARY KEY (`username`),
               INDEX(password),
               INDEX(email)
@@ -70,6 +77,30 @@ public class SQLUserDAO implements UserDAO {
     private void writeHashedPasswordToDatabase(String username, String hashedPassword) {
 
     }
+
+    private int executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
+                    Object param = params[i];
+                    if (param instanceof String p) ps.setString(i + 1, p);
+                    else if (param instanceof Integer p) ps.setInt(i + 1, p);
+                    else if (param == null) ps.setNull(i + 1, NULL);
+                }
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+
+                return 0;
+            }
+        } catch (SQLException e) {
+            throw new ResponseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
+        }
+    }
+
 
     private void configureDatabase() throws ResponseException, DataAccessException {
         DatabaseManager.createDatabase();

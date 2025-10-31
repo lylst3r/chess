@@ -1,5 +1,6 @@
 package server.service;
 
+import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
@@ -11,12 +12,12 @@ import server.service.result.LoginResult;
 
 public class Service {
 
-    MemoryDataAccessDAO dao;
+    DataAccessDAO dao;
     ClearService clearService;
     UserService userService;
     GameService gameService;
 
-    public Service(MemoryDataAccessDAO dao) {
+    public Service(DataAccessDAO dao) {
         this.dao = dao;
         this.clearService = new ClearService(dao);
         this.userService = new UserService(dao);
