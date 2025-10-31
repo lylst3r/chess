@@ -2,7 +2,6 @@ package server.service;
 
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import model.AuthData;
 import model.UserData;
@@ -28,7 +27,6 @@ public class UserService {
     public RegisterResult register(RegisterRequest request) throws ResponseException, DataAccessException {
         String username = request.username();
         String password = request.password();
-        UserData user = dao.getUserDAO().getUser(username);
 
         if (username == null || username.isEmpty()) {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: username cannot be empty");

@@ -2,7 +2,6 @@ package server.handlers;
 
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import model.AuthData;
 import server.service.Service;
@@ -15,13 +14,11 @@ import server.service.result.ListGamesResult;
 public class GameHandler {
 
     private final Service service;
-    private final DataAccessDAO dao;
 
 
-    public GameHandler(Service service, DataAccessDAO dao) {
+    public GameHandler(Service service) {
 
         this.service = service;
-        this.dao = dao;
 
     }
 

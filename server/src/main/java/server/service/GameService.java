@@ -3,9 +3,7 @@ package server.service;
 import chess.ChessGame;
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
-import model.AuthData;
 import model.GameData;
 import server.service.request.CreateGameRequest;
 import server.service.request.JoinGameRequest;
@@ -13,7 +11,6 @@ import server.service.result.CreateGameResult;
 import server.service.result.ListGamesResult;
 
 import java.util.ArrayList;
-import java.util.List;
 
 //endpoints: listGames, createGame, joinGame
 public class GameService {
@@ -31,8 +28,7 @@ public class GameService {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
         }
         ArrayList<GameData> games = dao.getGameDAO().listGames();
-        ListGamesResult result = new ListGamesResult(games);
-        return result;
+        return new ListGamesResult(games);
     }
 
     public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
@@ -44,9 +40,8 @@ public class GameService {
         }
 
         GameData game = new GameData(0, null, null, gameName, chessGame);
-        int gameID = dao.getGameDAO().createGame(game);;
-        CreateGameResult result = new CreateGameResult(gameID);
-        return result;
+        int gameID = dao.getGameDAO().createGame(game);
+        return new CreateGameResult(gameID);
     }
 
     public void joinGame(JoinGameRequest request, String username) throws ResponseException, DataAccessException {
@@ -85,7 +80,7 @@ public class GameService {
             newGame = new GameData(game.gameID(), username, game.blackUsername(), game.gameName(), game.game());
             dao.getGameDAO().updateGame(request.gameID(), newGame);
         }
-        else if (playerColor.equals("BLACK")) {
+        else {
             newGame = new GameData(game.gameID(), game.whiteUsername(), username, game.gameName(), game.game());
             dao.getGameDAO().updateGame(request.gameID(), newGame);
         }

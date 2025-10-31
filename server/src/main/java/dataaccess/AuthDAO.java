@@ -1,9 +1,6 @@
 package dataaccess;
-import java.util.ArrayList;
-import java.util.UUID;
 
 import model.AuthData;
-import model.UserData;
 
 public interface AuthDAO {
 

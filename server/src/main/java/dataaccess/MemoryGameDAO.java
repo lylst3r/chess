@@ -3,7 +3,6 @@ package dataaccess;
 import model.GameData;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MemoryGameDAO implements GameDAO {
 
@@ -21,7 +20,7 @@ public class MemoryGameDAO implements GameDAO {
         return gameIDCounter;
     }
 
-    public GameData getGame(int gameID) throws DataAccessException {
+    public GameData getGame(int gameID) {
         for(GameData game: gameList){
             if(game.gameID() == gameID){
                 return game;
@@ -49,7 +48,7 @@ public class MemoryGameDAO implements GameDAO {
         }
     }
 
-    public void clearGames() throws DataAccessException {
+    public void clearGames() {
         gameList.clear();
         gameIDCounter = 0;
     }

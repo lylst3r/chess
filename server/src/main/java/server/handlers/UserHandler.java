@@ -2,7 +2,6 @@ package server.handlers;
 
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import server.service.Service;
 import server.service.request.LoginRequest;
@@ -15,12 +14,10 @@ import server.service.result.RegisterResult;
 public class UserHandler {
 
     private final Service service;
-    private final DataAccessDAO dao;
 
-    public UserHandler(Service service, DataAccessDAO dao){
+    public UserHandler(Service service){
 
         this.service = service;
-        this.dao = dao;
 
     }
 

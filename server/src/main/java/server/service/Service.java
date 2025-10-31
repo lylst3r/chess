@@ -2,10 +2,8 @@ package server.service;
 
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
 import exception.ResponseException;
 import model.AuthData;
-import model.GameData;
 import server.service.request.*;
 import server.service.result.*;
 import server.service.result.LoginResult;
@@ -41,7 +39,7 @@ public class Service {
         userService.logout(logoutRequest);
     }
 
-    public AuthData getAuth(String authToken) throws ResponseException, DataAccessException {
+    public AuthData getAuth(String authToken) throws DataAccessException {
         return dao.getAuthDAO().getAuth(authToken);
     }
 

@@ -1,7 +1,6 @@
 package server.service;
 
 import dataaccess.DataAccessDAO;
-import dataaccess.MemoryDataAccessDAO;
 import dataaccess.DataAccessException;
 import exception.ResponseException;
 

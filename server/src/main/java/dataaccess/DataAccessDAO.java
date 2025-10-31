@@ -1,9 +1,5 @@
 package dataaccess;
 
-import model.UserData;
-import model.GameData;
-import model.AuthData;
-
 //DAO classes mostly CRUD (create, read, update, delete) operations
 public interface DataAccessDAO {
 

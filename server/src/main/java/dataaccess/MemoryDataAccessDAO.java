@@ -1,9 +1,5 @@
 package dataaccess;
 
-
-import java.util.HashMap;
-import java.util.Map;
-
 public class MemoryDataAccessDAO implements DataAccessDAO {
 
     private final UserDAO userDAO;
@@ -16,15 +12,15 @@ public class MemoryDataAccessDAO implements DataAccessDAO {
         this.authDAO = new MemoryAuthDAO();
     }
 
-    public UserDAO getUserDAO() throws DataAccessException {
+    public UserDAO getUserDAO() {
         return userDAO;
     }
 
-    public GameDAO getGameDAO() throws DataAccessException {
+    public GameDAO getGameDAO() {
         return gameDAO;
     }
 
-    public AuthDAO getAuthDAO() throws DataAccessException {
+    public AuthDAO getAuthDAO() {
         return authDAO;
     }
 

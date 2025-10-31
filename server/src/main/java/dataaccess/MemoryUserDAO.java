@@ -19,11 +19,11 @@ public class MemoryUserDAO implements UserDAO {
         users.add(user);
     }
 
-    public void clearUsers() throws DataAccessException {
+    public void clearUsers() {
         users.clear();
     }
 
-    public UserData getUser(String username) throws DataAccessException {
+    public UserData getUser(String username) {
         for(UserData user : users){
             if (user.username().equals(username)) {
                 return user;
@@ -32,7 +32,7 @@ public class MemoryUserDAO implements UserDAO {
         return null;
     }
 
-    public boolean usernameTaken(String username) throws DataAccessException {
+    public boolean usernameTaken(String username) {
         for(UserData user : users){
             if (user.username().equals(username)) {
                 return true;
@@ -41,7 +41,7 @@ public class MemoryUserDAO implements UserDAO {
         return false;
     }
 
-    public ArrayList<UserData> listUsers() throws DataAccessException {
+    public ArrayList<UserData> listUsers() {
         return users;
     }
 }
