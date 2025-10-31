@@ -24,29 +24,77 @@ public class SQLUserDAO implements UserDAO {
     public void createUser(UserData user) throws ResponseException, DataAccessException {
         var statement = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
         String json = new Gson().toJson(user);
-        int id = executeUpdate(statement, user.username(), user.password(), user.email());
+        int id = executeUpdate(statement, user.username(), null, user.email());
+        storeUserPassword(user.username(), user.password());
     }
 
-    public UserData getUser(String username) throws DataAccessException {
+    public UserData getUser(String username) throws ResponseException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT id, json FROM pet WHERE id=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readUser(rs);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
     }
 
-    public void clearUsers() throws DataAccessException {
-
+    public void clearUsers() throws ResponseException, DataAccessException {
+        var statement = "TRUNCATE user";
+        executeUpdate(statement);
     }
 
-    public boolean usernameTaken(String username) throws DataAccessException {
-        return false;
+    public boolean usernameTaken(String username) throws DataAccessException, ResponseException {
+        String sql = "SELECT 1 FROM users WHERE username = ? LIMIT 1";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
-    public ArrayList<UserData> listUsers() throws DataAccessException {
-        return null;
+    public ArrayList<UserData> listUsers() throws ResponseException {
+        var result = new ArrayList<UserData>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username, json FROM user";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(readUser(rs));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+        }
+        return result;
+    }
+
+    private UserData readUser(ResultSet rs) throws SQLException {
+        var id = rs.getString("username");
+        var json = rs.getString("json");
+        UserData user = new Gson().fromJson(json, UserData.class);
+        return user;
     }
 
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS  user (
-              `username` varchar(255) NOT NULL,
+              `username` varchar(255) NOT NULL UNIQUE,
               `password` varchar(255) NOT NULL,
               `email` varchar(255) NOT NULL,
               PRIMARY KEY (`username`),
@@ -56,26 +104,49 @@ public class SQLUserDAO implements UserDAO {
             """
     };
 
-    private void storeUserPassword(String username, String clearTextPassword) {
+    private void storeUserPassword(String username, String clearTextPassword) throws ResponseException, DataAccessException {
         String hashedPassword = BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
-
-        // write the hashed password in database along with the user's other information
         writeHashedPasswordToDatabase(username, hashedPassword);
     }
 
-    private boolean verifyUser(String username, String providedClearTextPassword) {
-        // read the previously hashed password from the database
+    private boolean verifyUser(String username, String providedClearTextPassword) throws ResponseException, DataAccessException {
         var hashedPassword = readHashedPasswordFromDatabase(username);
-
         return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
 
-    private String readHashedPasswordFromDatabase(String username) {
+    private String readHashedPasswordFromDatabase(String username) throws ResponseException, DataAccessException {
+        String sql = "SELECT password FROM users WHERE username = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("password");
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error retrieving stored hash: " + e.getMessage());
+        }
+
         return null;
     }
 
-    private void writeHashedPasswordToDatabase(String username, String hashedPassword) {
+    private void writeHashedPasswordToDatabase(String username, String hashedPassword) throws DataAccessException, ResponseException {
+        String sql = "UPDATE users SET password = ? WHERE username = ?";
 
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, hashedPassword);
+            ps.setString(2, username);
+
+        } catch (SQLException e) {
+            throw new ResponseException(ResponseException.Code.ServerError, e.getMessage());
+        }
     }
 
     private int executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
