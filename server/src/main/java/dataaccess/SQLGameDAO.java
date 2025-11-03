@@ -64,7 +64,7 @@ public class SQLGameDAO implements GameDAO {
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "UPDATE game SET json=? WHERE id=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                executeUpdate(statement);
+                executeUpdate(statement, gameID, updatedGame.whiteUsername(), updatedGame.blackUsername(), updatedGame.gameName(), updatedGame.game());
             }
 
         } catch (Exception e) {

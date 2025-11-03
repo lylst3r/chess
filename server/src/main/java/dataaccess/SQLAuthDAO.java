@@ -1,7 +1,9 @@
 package dataaccess;
 
+import com.google.gson.Gson;
 import exception.ResponseException;
 import model.AuthData;
+import model.UserData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,28 +15,66 @@ import static java.sql.Types.NULL;
 
 public class SQLAuthDAO implements AuthDAO {
 
-    public SQLAuthDAO() {
-
+    public SQLAuthDAO() throws DataAccessException, ResponseException {
+        configureDatabase();
     }
 
-    public void createAuth(AuthData auth) throws DataAccessException {
-
+    public void createAuth(AuthData auth) throws DataAccessException, ResponseException {
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?, ?)";
+        String json = new Gson().toJson(auth);
+        int id = executeUpdate(statement, auth.authToken(), auth.username());
     }
 
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken) throws DataAccessException, ResponseException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken, json FROM auth";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return readAuth(rs);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
     }
 
-    public void deleteAuth(String authToken) throws DataAccessException {
-
+    public void deleteAuth(String authToken) throws DataAccessException, ResponseException {
+        var statement = "DELETE FROM auth WHERE authToken=?";
+        executeUpdate(statement, authToken);
     }
 
-    public void clearAuths() throws DataAccessException {
-
+    public void clearAuths() throws DataAccessException, ResponseException {
+        var statement = "TRUNCATE auth";
+        executeUpdate(statement);
     }
 
-    public String getUsername(String authToken) throws DataAccessException {
+    public String getUsername(String authToken) throws DataAccessException, ResponseException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken, json FROM auth WHERE authToken=authToken";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        AuthData foundAuth = readAuth(rs);
+                        return foundAuth.username();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
+    }
+
+    private AuthData readAuth(ResultSet rs) throws SQLException {
+        var id = rs.getString("authToken");
+        var json = rs.getString("json");
+        AuthData auth = new Gson().fromJson(json, AuthData.class);
+        return auth;
     }
 
     private final String[] createStatements = {
