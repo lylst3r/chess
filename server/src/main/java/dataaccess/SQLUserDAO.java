@@ -30,7 +30,7 @@ public class SQLUserDAO implements UserDAO {
 
     public UserData getUser(String username) throws ResponseException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT id, json FROM pet WHERE id=?";
+            var statement = "SELECT username, json FROM user WHERE id=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
