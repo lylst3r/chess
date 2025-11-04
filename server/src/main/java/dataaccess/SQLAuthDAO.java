@@ -17,8 +17,8 @@ public class SQLAuthDAO implements AuthDAO {
     private final SQLHelper sqlHelper;
 
     public SQLAuthDAO() throws DataAccessException, ResponseException {
-        configureDatabase();
         sqlHelper = new SQLHelper();
+        configureDatabase();
     }
 
     public void createAuth(AuthData auth) throws DataAccessException, ResponseException {
@@ -76,33 +76,13 @@ public class SQLAuthDAO implements AuthDAO {
         return new AuthData(rs.getString("authToken"), rs.getString("username"));
     }
 
-    private final String[] createStatements = {
-            """
-            CREATE TABLE IF NOT EXISTS  auth (
-              `authToken` varchar(255) NOT NULL,
-              `username` varchar(255) NOT NULL,
-              PRIMARY KEY (`authToken`),
-              INDEX(username)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """
-    };
-
     private void executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
         sqlHelper.executeUpdate(statement, params);
     }
 
 
     private void configureDatabase() throws ResponseException, DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to configure database: %s", ex.getMessage()));
-        }
+        assert sqlHelper != null;
+        sqlHelper.configureDatabase("user");
     }
 }

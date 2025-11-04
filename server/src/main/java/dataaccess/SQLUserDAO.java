@@ -16,8 +16,8 @@ public class SQLUserDAO implements UserDAO {
     private final SQLHelper sqlHelper;
 
     public SQLUserDAO() throws ResponseException, DataAccessException {
-        configureDatabase();
         sqlHelper = new SQLHelper();
+        configureDatabase();
     }
 
     public void createUser(UserData user) throws ResponseException, DataAccessException {
@@ -91,39 +91,6 @@ public class SQLUserDAO implements UserDAO {
         return new UserData(username, password, email);
     }
 
-    private final String[] createStatements = {
-            """
-            CREATE TABLE IF NOT EXISTS  user (
-              `username` varchar(255) NOT NULL UNIQUE,
-              `password` varchar(255) NOT NULL,
-              `email` varchar(255) NOT NULL,
-              PRIMARY KEY (`username`),
-              INDEX(password),
-              INDEX(email)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """
-    };
-
-    private String readHashedPasswordFromDatabase(String username) throws ResponseException, DataAccessException {
-        String sql = "SELECT password FROM user WHERE username = ?";
-
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, username);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("password");
-                }
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error retrieving stored hash: " + e.getMessage());
-        }
-
-        return null;
-    }
 
     private void executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
         sqlHelper.executeUpdate(statement, params);
@@ -131,16 +98,7 @@ public class SQLUserDAO implements UserDAO {
 
 
     private void configureDatabase() throws ResponseException, DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to configure database: %s", ex.getMessage()));
-        }
+        assert sqlHelper != null;
+        sqlHelper.configureDatabase("user");
     }
 }
