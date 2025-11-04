@@ -14,14 +14,16 @@ import static java.sql.Types.NULL;
 
 public class SQLAuthDAO implements AuthDAO {
 
+    private final SQLHelper sqlHelper;
+
     public SQLAuthDAO() throws DataAccessException, ResponseException {
         configureDatabase();
+        sqlHelper = new SQLHelper();
     }
 
     public void createAuth(AuthData auth) throws DataAccessException, ResponseException {
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-        String json = new Gson().toJson(auth);
-        int id = executeUpdate(statement, auth.authToken(), auth.username());
+        executeUpdate(statement, auth.authToken(), auth.username());
     }
 
     public AuthData getAuth(String authToken) throws DataAccessException, ResponseException {
@@ -36,7 +38,8 @@ public class SQLAuthDAO implements AuthDAO {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    String.format("Unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -47,7 +50,7 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     public void clearAuths() throws DataAccessException, ResponseException {
-        var statement = "TRUNCATE auth";
+        var statement = "DELETE FROM auth";
         executeUpdate(statement);
     }
 
@@ -58,13 +61,13 @@ public class SQLAuthDAO implements AuthDAO {
                 ps.setString(1, authToken);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        AuthData foundAuth = readAuth(rs);
-                        return foundAuth.username();
+                        return rs.getString("username");
                     }
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    String.format("Unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -84,27 +87,8 @@ public class SQLAuthDAO implements AuthDAO {
             """
     };
 
-    private int executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    else if (param instanceof Integer p) ps.setInt(i + 1, p);
-                    else if (param == null) ps.setNull(i + 1, NULL);
-                }
-                ps.executeUpdate();
-
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-
-                return 0;
-            }
-        } catch (SQLException e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
-        }
+    private void executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
+        sqlHelper.executeUpdate(statement, params);
     }
 
 
@@ -117,8 +101,8 @@ public class SQLAuthDAO implements AuthDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to configure database: %s", ex.getMessage()));
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    String.format("Unable to configure database: %s", ex.getMessage()));
         }
     }
-
 }

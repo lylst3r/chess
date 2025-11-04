@@ -5,10 +5,7 @@ import exception.ResponseException;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
@@ -16,15 +13,17 @@ import static java.sql.Types.NULL;
 
 public class SQLUserDAO implements UserDAO {
 
+    private final SQLHelper sqlHelper;
+
     public SQLUserDAO() throws ResponseException, DataAccessException {
         configureDatabase();
+        sqlHelper = new SQLHelper();
     }
 
     public void createUser(UserData user) throws ResponseException, DataAccessException {
         String hashedPass = BCrypt.hashpw(user.password(), BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         executeUpdate(statement, user.username(), hashedPass, user.email());
-        //storeUserPassword(user.username(), user.password());
     }
 
     public UserData getUser(String username) throws ResponseException {
@@ -39,7 +38,8 @@ public class SQLUserDAO implements UserDAO {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    String.format("Unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -78,7 +78,8 @@ public class SQLUserDAO implements UserDAO {
                 }
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to read data: %s", e.getMessage()));
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    String.format("Unable to read data: %s", e.getMessage()));
         }
         return result;
     }
@@ -103,14 +104,6 @@ public class SQLUserDAO implements UserDAO {
             """
     };
 
-    private boolean verifyUser(String username, String providedClearTextPassword) throws ResponseException, DataAccessException {
-        var hashedPassword = readHashedPasswordFromDatabase(username);
-        if (hashedPassword == null) {
-            return false;
-        }
-        return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
-    }
-
     private String readHashedPasswordFromDatabase(String username) throws ResponseException, DataAccessException {
         String sql = "SELECT password FROM user WHERE username = ?";
 
@@ -132,25 +125,8 @@ public class SQLUserDAO implements UserDAO {
         return null;
     }
 
-    private int executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(statement)) {
-
-            for (int i = 0; i < params.length; i++) {
-                Object param = params[i];
-                switch (param) {
-                    case String p -> ps.setString(i + 1, p);
-                    case Integer p -> ps.setInt(i + 1, p);
-                    case null -> ps.setNull(i + 1, NULL);
-                    default -> throw new DataAccessException("Unsupported param type: " + param.getClass());
-                }
-            }
-
-                return ps.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
-        }
+    private void executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
+        sqlHelper.executeUpdate(statement, params);
     }
 
 
@@ -163,7 +139,8 @@ public class SQLUserDAO implements UserDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, String.format("Unable to configure database: %s", ex.getMessage()));
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    String.format("Unable to configure database: %s", ex.getMessage()));
         }
     }
 }
