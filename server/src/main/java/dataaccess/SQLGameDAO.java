@@ -4,14 +4,9 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.GameData;
-import model.UserData;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
 import java.util.ArrayList;
-
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
 
 public class SQLGameDAO implements GameDAO {
 
@@ -22,8 +17,7 @@ public class SQLGameDAO implements GameDAO {
     public int createGame(GameData game) throws DataAccessException, ResponseException {
         var statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
         String json = new Gson().toJson(game);
-        int id = executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
-        return id;
+        return executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
     }
 
     public GameData getGame(int gameID) throws DataAccessException, ResponseException {
@@ -80,8 +74,7 @@ public class SQLGameDAO implements GameDAO {
     private GameData readGame(ResultSet rs) throws SQLException {
         var id = rs.getString("gameID");
         var json = rs.getString("json");
-        GameData game = new Gson().fromJson(json, GameData.class);
-        return game;
+        return new Gson().fromJson(json, GameData.class);
     }
 
 
@@ -108,13 +101,16 @@ public class SQLGameDAO implements GameDAO {
             for (int i = 0; i < params.length; i++) {
                 Object param = params[i];
 
-                if (param instanceof String s) ps.setString(i + 1, s);
-                else if (param instanceof Integer n) ps.setInt(i + 1, n);
-                else if (param instanceof ChessGame game) {
-                    String json = new Gson().toJson(game);
-                    ps.setString(i + 1, json);
-                } else if (param == null) ps.setNull(i + 1, Types.NULL);
-                else ps.setString(i + 1, param.toString());
+                switch (param) {
+                    case String s -> ps.setString(i + 1, s);
+                    case Integer n -> ps.setInt(i + 1, n);
+                    case ChessGame game -> {
+                        String json = new Gson().toJson(game);
+                        ps.setString(i + 1, json);
+                    }
+                    case null -> ps.setNull(i + 1, Types.NULL);
+                    default -> ps.setString(i + 1, param.toString());
+                }
             }
 
             ps.executeUpdate();

@@ -3,7 +3,6 @@ package dataaccess;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.UserData;
-import org.eclipse.jetty.server.Response;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
@@ -50,7 +49,7 @@ public class SQLUserDAO implements UserDAO {
         executeUpdate(statement);
     }
 
-    public boolean usernameTaken(String username) throws DataAccessException, ResponseException {
+    public boolean usernameTaken(String username) throws DataAccessException {
         String sql = "SELECT 1 FROM users WHERE username = ? LIMIT 1";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -87,8 +86,7 @@ public class SQLUserDAO implements UserDAO {
     private UserData readUser(ResultSet rs) throws SQLException {
         var id = rs.getString("username");
         var json = rs.getString("json");
-        UserData user = new Gson().fromJson(json, UserData.class);
-        return user;
+        return new Gson().fromJson(json, UserData.class);
     }
 
     private final String[] createStatements = {
@@ -154,9 +152,13 @@ public class SQLUserDAO implements UserDAO {
             try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
                     Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    else if (param instanceof Integer p) ps.setInt(i + 1, p);
-                    else if (param == null) ps.setNull(i + 1, NULL);
+                    switch (param) {
+                        case String p -> ps.setString(i + 1, p);
+                        case Integer p -> ps.setInt(i + 1, p);
+                        case null -> ps.setNull(i + 1, NULL);
+                        default -> {
+                        }
+                    }
                 }
                 ps.executeUpdate();
 

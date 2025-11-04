@@ -3,9 +3,6 @@ package dataaccess;
 
 import exception.ResponseException;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SQLDataAccessDAO implements DataAccessDAO {
 
     private final UserDAO userDAO;
@@ -18,15 +15,15 @@ public class SQLDataAccessDAO implements DataAccessDAO {
         this.authDAO = new SQLAuthDAO();
     }
 
-    public UserDAO getUserDAO() throws DataAccessException {
+    public UserDAO getUserDAO() {
         return userDAO;
     }
 
-    public GameDAO getGameDAO() throws DataAccessException {
+    public GameDAO getGameDAO() {
         return gameDAO;
     }
 
-    public AuthDAO getAuthDAO() throws DataAccessException {
+    public AuthDAO getAuthDAO() {
         return authDAO;
     }
 

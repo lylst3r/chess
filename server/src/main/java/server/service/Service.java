@@ -39,7 +39,7 @@ public class Service {
         userService.logout(logoutRequest);
     }
 
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken) throws DataAccessException, ResponseException {
         return dao.getAuthDAO().getAuth(authToken);
     }
 

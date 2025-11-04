@@ -3,7 +3,6 @@ package dataaccess;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.AuthData;
-import model.UserData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,8 +72,7 @@ public class SQLAuthDAO implements AuthDAO {
     private AuthData readAuth(ResultSet rs) throws SQLException {
         var id = rs.getString("authToken");
         var json = rs.getString("json");
-        AuthData auth = new Gson().fromJson(json, AuthData.class);
-        return auth;
+        return new Gson().fromJson(json, AuthData.class);
     }
 
     private final String[] createStatements = {
