@@ -1,12 +1,14 @@
-package dataaccess;
+package dataaccess.sql;
 
-public class mainDataAccessDAO implements DataAccessDAO {
+import dataaccess.*;
+
+public class MainDataAccessDAO implements DataAccessDAO {
 
     private final UserDAO userDAO;
     private final GameDAO gameDAO;
     private final AuthDAO authDAO;
 
-    protected mainDataAccessDAO(UserDAO userDAO, GameDAO gameDAO, AuthDAO authDAO) {
+    protected MainDataAccessDAO(UserDAO userDAO, GameDAO gameDAO, AuthDAO authDAO) {
         this.userDAO = userDAO;
         this.gameDAO = gameDAO;
         this.authDAO = authDAO;

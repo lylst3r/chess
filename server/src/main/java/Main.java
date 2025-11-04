@@ -1,10 +1,8 @@
 
-import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
-import exception.ResponseException;
+import dataaccess.memory.MemoryDataAccessDAO;
 import server.Server;
 import dataaccess.DataAccessDAO;
-import dataaccess.SQLDataAccessDAO;
+import dataaccess.sql.SQLDataAccessDAO;
 import server.service.Service;
 
 

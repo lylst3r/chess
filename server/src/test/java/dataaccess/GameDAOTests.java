@@ -2,7 +2,7 @@ package dataaccess;
 
 import exception.ResponseException;
 import org.junit.jupiter.api.BeforeEach;
-import dataaccess.SQLGameDAO;
+import dataaccess.sql.SQLGameDAO;
 import model.GameData;
 import org.junit.jupiter.api.Test;
 

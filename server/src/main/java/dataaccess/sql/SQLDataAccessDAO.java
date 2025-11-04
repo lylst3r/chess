@@ -1,9 +1,10 @@
-package dataaccess;
+package dataaccess.sql;
 
 
+import dataaccess.DataAccessException;
 import exception.ResponseException;
 
-public class SQLDataAccessDAO extends mainDataAccessDAO {
+public class SQLDataAccessDAO extends MainDataAccessDAO {
 
     public SQLDataAccessDAO() throws ResponseException, DataAccessException {
 

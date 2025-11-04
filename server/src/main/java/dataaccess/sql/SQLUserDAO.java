@@ -1,15 +1,13 @@
-package dataaccess;
+package dataaccess.sql;
 
-import com.google.gson.Gson;
+import dataaccess.DataAccessException;
+import dataaccess.UserDAO;
 import exception.ResponseException;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.*;
 import java.util.ArrayList;
-
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
 
 public class SQLUserDAO implements UserDAO {
 

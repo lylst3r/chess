@@ -1,11 +1,10 @@
 package dataaccess;
 
+import dataaccess.sql.SQLUserDAO;
 import exception.ResponseException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import model.UserData;
 import org.junit.jupiter.api.Test;
-import dataaccess.UserDAO;
 
 import java.util.ArrayList;
 

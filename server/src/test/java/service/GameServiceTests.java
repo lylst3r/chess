@@ -1,10 +1,9 @@
 package service;
 
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
+import dataaccess.memory.MemoryDataAccessDAO;
 import exception.ResponseException;
 import org.junit.jupiter.api.Test;
-import server.service.GameService;
 import server.service.Service;
 import server.service.request.CreateGameRequest;
 import server.service.request.JoinGameRequest;

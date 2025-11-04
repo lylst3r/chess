@@ -1,11 +1,10 @@
 package service;
 
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccessDAO;
+import dataaccess.memory.MemoryDataAccessDAO;
 import exception.ResponseException;
 import org.junit.jupiter.api.Test;
 import server.service.Service;
-import server.service.UserService;
 import server.service.request.LoginRequest;
 import server.service.request.LogoutRequest;
 import server.service.request.RegisterRequest;

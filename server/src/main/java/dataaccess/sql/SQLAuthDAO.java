@@ -1,6 +1,7 @@
-package dataaccess;
+package dataaccess.sql;
 
-import com.google.gson.Gson;
+import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import exception.ResponseException;
 import model.AuthData;
 
@@ -8,9 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
 
 public class SQLAuthDAO implements AuthDAO {
 
@@ -83,6 +81,6 @@ public class SQLAuthDAO implements AuthDAO {
 
     private void configureDatabase() throws ResponseException, DataAccessException {
         assert sqlHelper != null;
-        sqlHelper.configureDatabase("user");
+        sqlHelper.configureDatabase("auth");
     }
 }

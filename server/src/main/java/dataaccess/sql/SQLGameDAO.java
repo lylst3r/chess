@@ -1,7 +1,9 @@
-package dataaccess;
+package dataaccess.sql;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
+import dataaccess.GameDAO;
 import exception.ResponseException;
 import model.GameData;
 
@@ -95,6 +97,6 @@ public class SQLGameDAO implements GameDAO {
 
     private void configureDatabase() throws ResponseException, DataAccessException {
         assert sqlHelper != null;
-        sqlHelper.configureDatabase("user");
+        sqlHelper.configureDatabase("game");
         }
 }

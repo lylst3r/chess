@@ -1,6 +1,9 @@
-package dataaccess;
+package dataaccess.memory;
 
 import java.util.ArrayList;
+
+import dataaccess.DataAccessException;
+import dataaccess.UserDAO;
 import model.UserData;
 
 public class MemoryUserDAO implements UserDAO {
