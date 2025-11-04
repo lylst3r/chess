@@ -19,14 +19,14 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     public void createAuth(AuthData auth) throws DataAccessException, ResponseException {
-        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         String json = new Gson().toJson(auth);
         int id = executeUpdate(statement, auth.authToken(), auth.username());
     }
 
     public AuthData getAuth(String authToken) throws DataAccessException, ResponseException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, json FROM auth";
+            var statement = "SELECT authToken, json FROM auth WHERE authToken = ?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
                 try (ResultSet rs = ps.executeQuery()) {

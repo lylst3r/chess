@@ -10,6 +10,7 @@ public class SQLDataAccessDAO implements DataAccessDAO {
     private final AuthDAO authDAO;
 
     public SQLDataAccessDAO() throws ResponseException, DataAccessException {
+
         this.userDAO = new SQLUserDAO();
         this.gameDAO = new SQLGameDAO();
         this.authDAO = new SQLAuthDAO();

@@ -8,6 +8,8 @@ public class DatabaseManager {
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
+    private static String host;
+    private static int port;
 
     /*
      * Load the database information for the db.properties file.

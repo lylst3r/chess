@@ -21,7 +21,7 @@ public class SQLUserDAO implements UserDAO {
     }
 
     public void createUser(UserData user) throws ResponseException, DataAccessException {
-        var statement = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
         String json = new Gson().toJson(user);
         int id = executeUpdate(statement, user.username(), null, user.email());
         storeUserPassword(user.username(), user.password());
@@ -50,7 +50,7 @@ public class SQLUserDAO implements UserDAO {
     }
 
     public boolean usernameTaken(String username) throws DataAccessException {
-        String sql = "SELECT 1 FROM users WHERE username = ? LIMIT 1";
+        String sql = "SELECT 1 FROM user WHERE username = ? LIMIT 1";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -113,7 +113,7 @@ public class SQLUserDAO implements UserDAO {
     }
 
     private String readHashedPasswordFromDatabase(String username) throws ResponseException, DataAccessException {
-        String sql = "SELECT password FROM users WHERE username = ?";
+        String sql = "SELECT password FROM user WHERE username = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -134,7 +134,7 @@ public class SQLUserDAO implements UserDAO {
     }
 
     private void writeHashedPasswordToDatabase(String username, String hashedPassword) throws DataAccessException, ResponseException {
-        String sql = "UPDATE users SET password = ? WHERE username = ?";
+        String sql = "UPDATE user SET password = ? WHERE username = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
