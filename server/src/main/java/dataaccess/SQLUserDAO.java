@@ -21,15 +21,15 @@ public class SQLUserDAO implements UserDAO {
     }
 
     public void createUser(UserData user) throws ResponseException, DataAccessException {
+        String hashedPass = BCrypt.hashpw(user.password(), BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        String json = new Gson().toJson(user);
-        int id = executeUpdate(statement, user.username(), null, user.email());
-        storeUserPassword(user.username(), user.password());
+        executeUpdate(statement, user.username(), hashedPass, user.email());
+        //storeUserPassword(user.username(), user.password());
     }
 
     public UserData getUser(String username) throws ResponseException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username, json FROM user WHERE id=?";
+            var statement = "SELECT username, password, email FROM user WHERE username = ?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -45,7 +45,7 @@ public class SQLUserDAO implements UserDAO {
     }
 
     public void clearUsers() throws ResponseException, DataAccessException {
-        var statement = "TRUNCATE user";
+        var statement = "DELETE FROM user";
         executeUpdate(statement);
     }
 
@@ -62,14 +62,14 @@ public class SQLUserDAO implements UserDAO {
             }
 
         } catch (SQLException e) {
-            return false;
+            throw new DataAccessException(e.getMessage());
         }
     }
 
     public ArrayList<UserData> listUsers() throws ResponseException {
         var result = new ArrayList<UserData>();
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username, json FROM user";
+            var statement = "SELECT username, password, email FROM user";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
@@ -84,9 +84,10 @@ public class SQLUserDAO implements UserDAO {
     }
 
     private UserData readUser(ResultSet rs) throws SQLException {
-        var id = rs.getString("username");
-        var json = rs.getString("json");
-        return new Gson().fromJson(json, UserData.class);
+        String username = rs.getString("username");
+        String password = rs.getString("password");
+        String email = rs.getString("email");
+        return new UserData(username, password, email);
     }
 
     private final String[] createStatements = {
@@ -102,13 +103,11 @@ public class SQLUserDAO implements UserDAO {
             """
     };
 
-    private void storeUserPassword(String username, String clearTextPassword) throws ResponseException, DataAccessException {
-        String hashedPassword = BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
-        writeHashedPasswordToDatabase(username, hashedPassword);
-    }
-
     private boolean verifyUser(String username, String providedClearTextPassword) throws ResponseException, DataAccessException {
         var hashedPassword = readHashedPasswordFromDatabase(username);
+        if (hashedPassword == null) {
+            return false;
+        }
         return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
 
@@ -133,42 +132,22 @@ public class SQLUserDAO implements UserDAO {
         return null;
     }
 
-    private void writeHashedPasswordToDatabase(String username, String hashedPassword) throws DataAccessException, ResponseException {
-        String sql = "UPDATE user SET password = ? WHERE username = ?";
-
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, hashedPassword);
-            ps.setString(2, username);
-
-        } catch (SQLException e) {
-            throw new ResponseException(ResponseException.Code.ServerError, e.getMessage());
-        }
-    }
-
     private int executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    switch (param) {
-                        case String p -> ps.setString(i + 1, p);
-                        case Integer p -> ps.setInt(i + 1, p);
-                        case null -> ps.setNull(i + 1, NULL);
-                        default -> {
-                        }
-                    }
-                }
-                ps.executeUpdate();
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(statement)) {
 
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
+            for (int i = 0; i < params.length; i++) {
+                Object param = params[i];
+                switch (param) {
+                    case String p -> ps.setString(i + 1, p);
+                    case Integer p -> ps.setInt(i + 1, p);
+                    case null -> ps.setNull(i + 1, NULL);
+                    default -> throw new DataAccessException("Unsupported param type: " + param.getClass());
                 }
-
-                return 0;
             }
+
+                return ps.executeUpdate();
+
         } catch (SQLException e) {
             throw new ResponseException(ResponseException.Code.ServerError, String.format("unable to update database: %s, %s", statement, e.getMessage()));
         }

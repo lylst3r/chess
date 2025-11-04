@@ -26,7 +26,7 @@ public class SQLAuthDAO implements AuthDAO {
 
     public AuthData getAuth(String authToken) throws DataAccessException, ResponseException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, json FROM auth WHERE authToken = ?";
+            var statement = "SELECT authToken, username FROM auth WHERE authToken = ?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -53,7 +53,7 @@ public class SQLAuthDAO implements AuthDAO {
 
     public String getUsername(String authToken) throws DataAccessException, ResponseException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, json FROM auth WHERE authToken=authToken";
+            var statement = "SELECT username FROM auth WHERE authToken = ?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -70,9 +70,7 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     private AuthData readAuth(ResultSet rs) throws SQLException {
-        var id = rs.getString("authToken");
-        var json = rs.getString("json");
-        return new Gson().fromJson(json, AuthData.class);
+        return new AuthData(rs.getString("authToken"), rs.getString("username"));
     }
 
     private final String[] createStatements = {
