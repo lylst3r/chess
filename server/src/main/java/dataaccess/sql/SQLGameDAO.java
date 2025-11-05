@@ -20,7 +20,7 @@ public class SQLGameDAO implements GameDAO {
     }
 
     public int createGame(GameData game) throws DataAccessException, ResponseException {
-        var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)";
+        String statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)";
         return executeUpdate(statement, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
     }
 
@@ -97,6 +97,6 @@ public class SQLGameDAO implements GameDAO {
 
     private void configureDatabase() throws ResponseException, DataAccessException {
         assert sqlHelper != null;
-        sqlHelper.configureDatabase("game");
+        sqlHelper.configureDatabase();
         }
 }

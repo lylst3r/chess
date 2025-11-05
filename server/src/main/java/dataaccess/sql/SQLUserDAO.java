@@ -97,6 +97,6 @@ public class SQLUserDAO implements UserDAO {
 
     private void configureDatabase() throws ResponseException, DataAccessException {
         assert sqlHelper != null;
-        sqlHelper.configureDatabase("user");
+        sqlHelper.configureDatabase();
     }
 }

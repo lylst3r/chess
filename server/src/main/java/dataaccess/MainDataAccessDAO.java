@@ -1,6 +1,6 @@
-package dataaccess.sql;
+package dataaccess;
 
-import dataaccess.*;
+import dataaccess.sql.DatabaseManager;
 
 public class MainDataAccessDAO implements DataAccessDAO {
 
@@ -9,6 +9,12 @@ public class MainDataAccessDAO implements DataAccessDAO {
     private final AuthDAO authDAO;
 
     protected MainDataAccessDAO(UserDAO userDAO, GameDAO gameDAO, AuthDAO authDAO) {
+        try {
+            DatabaseManager.createDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+
         this.userDAO = userDAO;
         this.gameDAO = gameDAO;
         this.authDAO = authDAO;

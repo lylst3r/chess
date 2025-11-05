@@ -5,6 +5,8 @@ import dataaccess.DataAccessException;
 import java.sql.*;
 import java.util.Properties;
 
+import static java.sql.DriverManager.println;
+
 public class DatabaseManager {
     private static String databaseName;
     private static String dbUsername;
@@ -51,7 +53,7 @@ public class DatabaseManager {
             var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
             conn.setCatalog(databaseName);
             return conn;
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw new DataAccessException("failed to get connection", ex);
         }
     }
@@ -74,8 +76,41 @@ public class DatabaseManager {
         dbUsername = props.getProperty("db.user");
         dbPassword = props.getProperty("db.password");
 
-        var host = props.getProperty("db.host");
-        var port = Integer.parseInt(props.getProperty("db.port"));
+        host = props.getProperty("db.host");
+        port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
+
+        System.out.println("DB config loaded: " + host + ":" + port + " / " + databaseName);
+    }
+
+    public static String  getDatabaseName() {
+        return databaseName;
+    }
+    public static String getUsername() {
+        return dbUsername;
+    }
+
+    public static String getPassword() {
+        return dbPassword;
+    }
+
+    public static String getHost() {
+        return host;
+    }
+
+    public static int getPort() {
+        return port;
+    }
+
+    public static boolean testConnection() {
+        try (Connection conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword)) {
+            conn.setCatalog(databaseName);
+            System.out.println("Connection successful! MySQL is running and database is accessible.");
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Unable to connect to database.");
+            System.out.println("Reason: " + e.getMessage());
+            return false;
+        }
     }
 }

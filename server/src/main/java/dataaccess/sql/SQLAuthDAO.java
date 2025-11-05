@@ -81,6 +81,6 @@ public class SQLAuthDAO implements AuthDAO {
 
     private void configureDatabase() throws ResponseException, DataAccessException {
         assert sqlHelper != null;
-        sqlHelper.configureDatabase("auth");
+        sqlHelper.configureDatabase();
     }
 }

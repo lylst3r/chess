@@ -81,25 +81,46 @@ public class SQLHelper {
         }
     }
 
-    public void configureDatabase(String table) throws ResponseException, DataAccessException {
-        DatabaseManager.createDatabase();
+    public void configureDatabase() throws ResponseException, DataAccessException {
+        databaseExists();
 
         try (Connection conn = DatabaseManager.getConnection()) {
-            String createSQL = switch (table) {
-                case "user" -> createUserStatements;
-                case "game" -> createGameStatements;
-                case "auth" -> createAuthStatements;
-                default -> throw new DataAccessException("Unknown table: " + table);
-            };
-
-            try (PreparedStatement ps = conn.prepareStatement(createSQL)) {
-                ps.executeUpdate();
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(createUserStatements);
+                stmt.executeUpdate(createGameStatements);
+                stmt.executeUpdate(createAuthStatements);
             }
-
         } catch (SQLException ex) {
             throw new ResponseException(ResponseException.Code.ServerError,
                     "Unable to configure database: " + ex.getMessage());
         }
     }
+
+    private void databaseExists() throws DataAccessException {
+        try {
+            try (Connection conn = DatabaseManager.getConnection()) {
+                return;
+            } catch (SQLException e) {
+                if (!e.getMessage().toLowerCase().contains("unknown database")) {
+                    throw e;
+                }
+            }
+
+            String baseUrl = "jdbc:mysql://localhost:3306/";
+            String dbName = "chess";
+
+            try (Connection conn = DriverManager.getConnection(
+                    "jdbc:mysql://" + DatabaseManager.getHost() + ":" + DatabaseManager.getPort() + "/",
+                    DatabaseManager.getUsername(),
+                    DatabaseManager.getPassword());
+                 Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DatabaseManager.getDatabaseName());
+            }
+
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to ensure database exists: " + e.getMessage());
+        }
+    }
+
 
 }

@@ -1,6 +1,6 @@
 package dataaccess.memory;
 
-import dataaccess.sql.MainDataAccessDAO;
+import dataaccess.MainDataAccessDAO;
 
 public class MemoryDataAccessDAO extends MainDataAccessDAO {
 

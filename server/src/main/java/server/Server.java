@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.memory.MemoryDataAccessDAO;
+import dataaccess.sql.SQLDataAccessDAO;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import exception.ResponseException;
@@ -26,7 +27,14 @@ public class Server {
     private final Gson gson;
 
     public Server() {
-        DataAccessDAO dao = new MemoryDataAccessDAO();
+        DataAccessDAO dao;
+        try {
+            dao = new SQLDataAccessDAO();
+        } catch (ResponseException | DataAccessException e) {
+            System.err.println("Failed to initialize SQL DAO: " + e.getMessage());
+            dao = new MemoryDataAccessDAO();
+        }
+
         Service service = new Service(dao);
         handler  = new Handler(service);
         gson = new Gson();
