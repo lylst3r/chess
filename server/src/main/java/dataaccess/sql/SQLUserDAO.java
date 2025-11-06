@@ -89,7 +89,6 @@ public class SQLUserDAO implements UserDAO {
         return new UserData(username, password, email);
     }
 
-
     private void executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
         sqlHelper.executeUpdate(statement, params);
     }

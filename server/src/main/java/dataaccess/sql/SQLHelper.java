@@ -25,8 +25,8 @@ public class SQLHelper {
     public final String createGameStatements = """
             CREATE TABLE IF NOT EXISTS  game (
               `gameID` INT NOT NULL AUTO_INCREMENT,
-              `whiteUsername` varchar(255) NOT NULL,
-              `blackUsername` varchar(255) NOT NULL,
+              `whiteUsername` varchar(255) DEFAULT NULL,
+              `blackUsername` varchar(255) DEFAULT NULL,
               `gameName` varchar(255) NOT NULL,
               `game` JSON DEFAULT NULL,
               PRIMARY KEY (`gameID`),
@@ -49,14 +49,14 @@ public class SQLHelper {
              PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
 
             setStatementParams(ps, params);
-            ps.executeUpdate();
+            int affectedRows = ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
                     return rs.getInt(1);
                 }
             }
-            return 0;
+            return affectedRows;
 
         } catch (SQLException e) {
             throw new ResponseException(ResponseException.Code.ServerError,
@@ -106,7 +106,7 @@ public class SQLHelper {
                 }
             }
 
-            String baseUrl = "jdbc:mysql://localhost:3306/";
+            String baseUrl = String.format("jdbc:mysql://%s:%d/", DatabaseManager.getHost(), DatabaseManager.getPort());
             String dbName = "chess";
 
             try (Connection conn = DriverManager.getConnection(

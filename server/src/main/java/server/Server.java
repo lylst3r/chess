@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import dataaccess.memory.MemoryDataAccessDAO;
+import dataaccess.sql.DatabaseManager;
 import dataaccess.sql.SQLDataAccessDAO;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -25,14 +26,16 @@ public class Server {
     private final Javalin javalin;
     private final Handler handler;
     private final Gson gson;
+    //private static final DataAccessDAO dao = initDAO();
 
     public Server() {
         DataAccessDAO dao;
+
         try {
+            DatabaseManager.loadPropertiesFromResources();
             dao = new SQLDataAccessDAO();
         } catch (ResponseException | DataAccessException e) {
-            System.err.println("Failed to initialize SQL DAO: " + e.getMessage());
-            dao = new MemoryDataAccessDAO();
+            throw new RuntimeException("Cannot start server without SQL database", e);
         }
 
         Service service = new Service(dao);

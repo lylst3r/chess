@@ -5,6 +5,7 @@ import dataaccess.DataAccessException;
 import exception.ResponseException;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import server.service.request.LoginRequest;
 import server.service.request.LogoutRequest;
 import server.service.request.RegisterRequest;
@@ -58,8 +59,16 @@ public class UserService {
         }
 
         UserData user = dao.getUserDAO().getUser(username);
-        if (user == null || user.password() == null || !user.password().equals(request.password())) {
+        if (user == null || user.password() == null) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        }
+
+        try {
+            if (!BCrypt.checkpw(password, user.password())) {
+                throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new ResponseException(ResponseException.Code.ServerError, "Error: invalid password hash");
         }
 
         String authToken = UUID.randomUUID().toString();
