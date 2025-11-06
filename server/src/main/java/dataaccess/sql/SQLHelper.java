@@ -60,7 +60,7 @@ public class SQLHelper {
 
         } catch (SQLException e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    "Unable to update database: " + e.getMessage());
+                    "Error: Unable to update database: " + e.getMessage());
         }
     }
 
@@ -92,7 +92,7 @@ public class SQLHelper {
             }
         } catch (SQLException ex) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    "Unable to configure database: " + ex.getMessage());
+                    "Error: Unable to configure database: " + ex.getMessage());
         }
     }
 
@@ -101,7 +101,7 @@ public class SQLHelper {
             try (Connection conn = DatabaseManager.getConnection()) {
                 return;
             } catch (SQLException e) {
-                if (!e.getMessage().toLowerCase().contains("unknown database")) {
+                if (!e.getMessage().toLowerCase().contains("Error: unknown database")) {
                     throw e;
                 }
             }
@@ -118,7 +118,7 @@ public class SQLHelper {
             }
 
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to ensure database exists: " + e.getMessage());
+            throw new DataAccessException("Error: Failed to ensure database exists: " + e.getMessage());
         }
     }
 

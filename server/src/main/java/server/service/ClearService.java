@@ -15,8 +15,11 @@ public class ClearService {
     }
 
     public void clearAll() throws DataAccessException, ResponseException {
-
-        dao.clearAll();
+        try {
+            dao.clearAll();
+        } catch (DataAccessException e) {
+            throw new ResponseException(ResponseException.Code.ServerError, "Error: Internal Server Error " + e.getMessage());
+        }
     }
 
 }

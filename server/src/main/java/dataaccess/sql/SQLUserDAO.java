@@ -36,7 +36,7 @@ public class SQLUserDAO implements UserDAO {
             }
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to read data: %s", e.getMessage()));
+                    String.format("Error: Unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -76,7 +76,7 @@ public class SQLUserDAO implements UserDAO {
             }
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to read data: %s", e.getMessage()));
+                    String.format("Error: Unable to read data: %s", e.getMessage()));
         }
         return result;
     }

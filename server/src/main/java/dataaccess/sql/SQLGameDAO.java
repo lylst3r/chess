@@ -38,7 +38,7 @@ public class SQLGameDAO implements GameDAO {
             }
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to read data: %s", e.getMessage()));
+                    String.format("Error: Unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -56,7 +56,7 @@ public class SQLGameDAO implements GameDAO {
             }
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to read data: %s", e.getMessage()));
+                    String.format("Error: Unable to read data: %s", e.getMessage()));
         }
         return result;
     }
@@ -71,7 +71,7 @@ public class SQLGameDAO implements GameDAO {
 
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Unable to read data: %s", e.getMessage()));
+                    String.format("Error: Unable to read data: %s", e.getMessage()));
         }
     }
 

@@ -24,65 +24,77 @@ public class GameService {
     }
 
     public ListGamesResult listGames(String authToken) throws ResponseException, DataAccessException {
-        if (authToken == null || authToken.isEmpty()|| dao.getAuthDAO().getAuth(authToken) == null) {
-            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        try {
+            if (authToken == null || authToken.isEmpty()|| dao.getAuthDAO().getAuth(authToken) == null) {
+                throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+            }
+            ArrayList<GameData> games = dao.getGameDAO().listGames();
+            return new ListGamesResult(games);
+        } catch (DataAccessException e) {
+            throw new  ResponseException(ResponseException.Code.ServerError, "Error: Internal Server Error " + e.getMessage());
         }
-        ArrayList<GameData> games = dao.getGameDAO().listGames();
-        return new ListGamesResult(games);
     }
 
     public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
-        ChessGame chessGame = new ChessGame();
-        String gameName = request.gameName();
+        try {
+            ChessGame chessGame = new ChessGame();
+            String gameName = request.gameName();
 
-        if (gameName == null || gameName.isEmpty()) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty");
+            if (gameName == null || gameName.isEmpty()) {
+                throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty");
+            }
+
+            GameData game = new GameData(0, null, null, gameName, chessGame);
+            int gameID = dao.getGameDAO().createGame(game);
+            return new CreateGameResult(gameID);
+        } catch (DataAccessException e) {
+            throw new  ResponseException(ResponseException.Code.ServerError, "Error: Internal Server Error " + e.getMessage());
         }
-
-        GameData game = new GameData(0, null, null, gameName, chessGame);
-        int gameID = dao.getGameDAO().createGame(game);
-        return new CreateGameResult(gameID);
     }
 
     public void joinGame(JoinGameRequest request, String username) throws ResponseException, DataAccessException {
-        GameData game = dao.getGameDAO().getGame(request.gameID());
+        try {
+            GameData game = dao.getGameDAO().getGame(request.gameID());
 
-        if (game == null) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
-        }
-        String gameName = game.gameName();
-        if (gameName == null || gameName.isEmpty()) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Error: ame name cannot be empty");
-        }
+            if (game == null) {
+                throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
+            }
+            String gameName = game.gameName();
+            if (gameName == null || gameName.isEmpty()) {
+                throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty");
+            }
 
-        String playerColor = request.playerColor();
-        //spectator
-        if (playerColor == null) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Error: no color given");
-        }
+            String playerColor = request.playerColor();
+            //spectator
+            if (playerColor == null) {
+                throw new ResponseException(ResponseException.Code.BadRequest, "Error: no color given");
+            }
 
-        playerColor = playerColor.toUpperCase();
+            playerColor = playerColor.toUpperCase();
 
-        if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Error: invalid color");
+            if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
+                throw new ResponseException(ResponseException.Code.BadRequest, "Error: invalid color");
 
-        }
+            }
 
-        if (playerColor.equals("WHITE") && game.whiteUsername() != null) {
-            throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
-        }
-        else if (playerColor.equals("BLACK") && game.blackUsername() != null) {
-            throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
-        }
+            if (playerColor.equals("WHITE") && game.whiteUsername() != null) {
+                throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
+            }
+            else if (playerColor.equals("BLACK") && game.blackUsername() != null) {
+                throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
+            }
 
-        GameData newGame;
-        if (playerColor.equals("WHITE")) {
-            newGame = new GameData(game.gameID(), username, game.blackUsername(), game.gameName(), game.game());
-            dao.getGameDAO().updateGame(request.gameID(), newGame);
-        }
-        else {
-            newGame = new GameData(game.gameID(), game.whiteUsername(), username, game.gameName(), game.game());
-            dao.getGameDAO().updateGame(request.gameID(), newGame);
+            GameData newGame;
+            if (playerColor.equals("WHITE")) {
+                newGame = new GameData(game.gameID(), username, game.blackUsername(), game.gameName(), game.game());
+                dao.getGameDAO().updateGame(request.gameID(), newGame);
+            }
+            else {
+                newGame = new GameData(game.gameID(), game.whiteUsername(), username, game.gameName(), game.game());
+                dao.getGameDAO().updateGame(request.gameID(), newGame);
+            }
+        } catch (DataAccessException e) {
+            throw new  ResponseException(ResponseException.Code.ServerError, "Error: Internal Server Error " + e.getMessage());
         }
     }
 }
