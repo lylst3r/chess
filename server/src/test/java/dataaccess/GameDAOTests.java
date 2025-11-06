@@ -32,7 +32,7 @@ public class GameDAOTests {
 
     @Test
     void createGameNegative() {
-        GameData invalidGame = new GameData(0, null, null, "iDontLikeThisGame", null);
+        GameData invalidGame = new GameData(0, null, null, null, null);
         assertThrows(ResponseException.class, () -> gameDAO.createGame(invalidGame));
     }
 

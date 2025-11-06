@@ -40,7 +40,8 @@ public class UserService {
             throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: username already taken");
         }
 
-        UserData newUser = new UserData(username, request.password(), request.email());
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        UserData newUser = new UserData(username, hashedPassword, request.email());
         dao.getUserDAO().createUser(newUser);
 
         String authToken = UUID.randomUUID().toString();

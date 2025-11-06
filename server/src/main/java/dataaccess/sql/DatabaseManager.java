@@ -5,8 +5,6 @@ import dataaccess.DataAccessException;
 import java.sql.*;
 import java.util.Properties;
 
-import static java.sql.DriverManager.println;
-
 public class DatabaseManager {
     private static String databaseName;
     private static String dbUsername;
@@ -20,11 +18,6 @@ public class DatabaseManager {
      */
     static {
         loadPropertiesFromResources();
-        try {
-            createDatabase();
-        } catch (DataAccessException e) {
-            throw new RuntimeException("Unable to create database: " + e.getMessage(), e);
-        }
     }
 
     /**
@@ -32,8 +25,7 @@ public class DatabaseManager {
      */
     static public void createDatabase() throws DataAccessException {
         var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName;
-        String rootUrl = String.format("jdbc:mysql://%s:%d/", host, port);
-        try (var conn = DriverManager.getConnection(rootUrl, dbUsername, dbPassword);
+        try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
         } catch (SQLException ex) {
@@ -55,16 +47,12 @@ public class DatabaseManager {
      */
     static Connection getConnection() throws DataAccessException {
         try {
-            if (port < 0 || port > 65535) {
-                throw new DataAccessException("Invalid database port: " + port);
-            }
-
-            Connection conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
+            //do not wrap the following line with a try-with-resources
+            var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
             conn.setCatalog(databaseName);
-            conn.setAutoCommit(true);
             return conn;
         } catch (SQLException ex) {
-            throw new DataAccessException("Failed to connect to database", ex);
+            throw new DataAccessException("failed to get connection", ex);
         }
     }
 
@@ -87,16 +75,9 @@ public class DatabaseManager {
         dbPassword = props.getProperty("db.password");
 
         host = props.getProperty("db.host");
-
-        try {
-            port = Integer.parseInt(props.getProperty("db.port"));
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid port number in properties", e);
-        }
-
-        connectionUrl = String.format("jdbc:mysql://%s:%d/%s", host, port, databaseName);
-
-        System.out.println("DB config loaded: " + host + ":" + port + " / " + databaseName);
+        var host = props.getProperty("db.host");
+        var port = Integer.parseInt(props.getProperty("db.port"));
+        connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
 
     public static String  getDatabaseName() {

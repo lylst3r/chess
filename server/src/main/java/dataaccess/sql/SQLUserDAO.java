@@ -19,9 +19,8 @@ public class SQLUserDAO implements UserDAO {
     }
 
     public void createUser(UserData user) throws ResponseException, DataAccessException {
-        String hashedPass = BCrypt.hashpw(user.password(), BCrypt.gensalt());
         var statement = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
-        executeUpdate(statement, user.username(), hashedPass, user.email());
+        executeUpdate(statement, user.username(), user.password(), user.email());
     }
 
     public UserData getUser(String username) throws ResponseException {
