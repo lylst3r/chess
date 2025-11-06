@@ -97,30 +97,34 @@ public class SQLHelper {
     }
 
     private void databaseExists() throws DataAccessException {
+        String dbName = DatabaseManager.getDatabaseName();
+
         try {
-            try (Connection conn = DatabaseManager.getConnection()) {
-                return;
-            } catch (SQLException e) {
-                if (!e.getMessage().toLowerCase().contains("Error: unknown database")) {
-                    throw e;
-                }
+            // Try connecting normally first
+            try (Connection conn = DriverManager.getConnection(
+                    "jdbc:mysql://" + DatabaseManager.getHost() + ":" + DatabaseManager.getPort() + "/" + dbName,
+                    DatabaseManager.getUsername(),
+                    DatabaseManager.getPassword())) {
+                return; // Database exists
+            }
+        } catch (SQLException e) {
+            // If the error is not "unknown database", rethrow
+            if (!e.getMessage().toLowerCase().contains("unknown database")) {
+                throw new DataAccessException("Failed to check database existence: " + e.getMessage(), e);
             }
 
-            String baseUrl = String.format("jdbc:mysql://%s:%d/", DatabaseManager.getHost(), DatabaseManager.getPort());
-            String dbName = "chess";
-
+            // Connect without database to create it
             try (Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://" + DatabaseManager.getHost() + ":" + DatabaseManager.getPort() + "/",
                     DatabaseManager.getUsername(),
                     DatabaseManager.getPassword());
                  Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DatabaseManager.getDatabaseName());
-            }
 
-        } catch (SQLException e) {
-            throw new DataAccessException("Error: Failed to ensure database exists: " + e.getMessage());
+                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName + " CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci");
+
+            } catch (SQLException ex) {
+                throw new DataAccessException("Failed to create database: " + ex.getMessage(), ex);
+            }
         }
     }
-
-
 }
