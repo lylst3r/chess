@@ -1,6 +1,5 @@
 package server.handlers;
 
-import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import exception.ResponseException;
 import model.AuthData;

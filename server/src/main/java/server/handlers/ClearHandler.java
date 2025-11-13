@@ -1,7 +1,6 @@
 package server.handlers;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
 import exception.ResponseException;
 import server.service.Service;

@@ -3,7 +3,6 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.DataAccessDAO;
 import dataaccess.DataAccessException;
-import dataaccess.memory.MemoryDataAccessDAO;
 import dataaccess.sql.DatabaseManager;
 import dataaccess.sql.SQLDataAccessDAO;
 import io.javalin.Javalin;
