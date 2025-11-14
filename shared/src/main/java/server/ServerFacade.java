@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -20,26 +21,46 @@ public class ServerFacade {
     }
 
     public void register(UserData user) throws Exception {
-
+        var request = buildRequest("POST", "/user", user);
+        var response = sendRequest(request);
+        handleResponse(response, UserData.class);
     }
 
     public void login(String username, String password) throws Exception {
-
+        String body = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
+        var request = buildRequest("POST", "/session", body);
+        var response = sendRequest(request);
+        handleResponse(response, UserData.class);
     }
 
     public void logout(String authToken) throws Exception {
-
+        var request = buildRequest("DELETE", "/session", authToken);
+        sendRequest(request);
     }
 
-    public void listGames(String authToken) throws Exception {
-
+    public ArrayList<GameData>[] listGames(String authToken) throws Exception {
+        var request = buildRequest("GET", "/game", authToken);
+        var response = sendRequest(request);
+        //return handleResponse(response, GameData.class);
+        return null;
     }
 
-    public void createGame(String authToken, String gameName) throws Exception {}
+    public void createGame(String authToken, String gameName) throws Exception {
+        var request = buildRequest("POST", "/game", gameName);
+        var response = sendRequest(request);
+        handleResponse(response, GameData.class);
+    }
 
-    public void joinGame(String authToken, int gameID, String playerColor) throws Exception {}
+    public void joinGame(String authToken, int gameID, String playerColor) throws Exception {
+        var request = buildRequest("POST", "/game", gameID);
+        var response = sendRequest(request);
+        handleResponse(response, GameData.class);
+    }
 
-    public void clear() throws Exception {}
+    public void clear() throws Exception {
+        var request = buildRequest("DELETE", "/db", null);
+        sendRequest(request);
+    }
 
     private HttpRequest buildRequest(String method, String path, Object body) {
         var request = HttpRequest.newBuilder()

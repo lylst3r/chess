@@ -6,17 +6,19 @@ import server.ServerFacade;
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class GameplayUI {
+public class PreLoginUI {
     private final ServerFacade server;
     private final UIHelper uiHelper;
+    private final String serverUrl;
 
-    public GameplayUI(String serverUrl) {
+    public PreLoginUI(String serverUrl) {
         server = new ServerFacade(serverUrl);
         uiHelper = new UIHelper();
+        this.serverUrl = serverUrl;
     }
 
     public void run() {
-        //System.out.println("Logged in as ");
+        System.out.println("Welcome to Chess. Sign in to start.");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -42,7 +44,7 @@ public class GameplayUI {
     }*/
 
     private void printPrompt() {
-        System.out.print("\n" + "[IN_GAME] >>> ");
+        System.out.print("\n" + "[LOGGED_OUT] >>> ");
     }
 
 
@@ -52,7 +54,9 @@ public class GameplayUI {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                case "quit" ->  quit(params);
+                case "login" -> login(params);
+                case "register" -> register(params);
+                case "quit" -> quit(params);
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -64,8 +68,24 @@ public class GameplayUI {
         return null;
     }
 
+    public String login(String... params) throws ResponseException {
+        try {
+            new PostLoginUI(serverUrl).run();
+
+        } catch (Throwable ex) {
+            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+        }
+        return null;
+    }
+
+    public String register(String... params) throws ResponseException {
+        return null;
+    }
+
     public String help() {
             return """
+                - register <username> <password> <email> --> create an account
+                - login <username> <password>
                 - quit --> exit chess
                 - help --> get possible commands
             """;
@@ -75,8 +95,6 @@ public class GameplayUI {
         State state = uiHelper.getState();
         if (state == State.LOGGEDOUT) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
-        } else if  (state == State.LOGGEDIN) {
-            throw new ResponseException(ResponseException.Code.ClientError, "You must join a game");
         }
     }
 }

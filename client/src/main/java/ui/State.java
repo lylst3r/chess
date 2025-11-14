@@ -1,4 +1,7 @@
 package ui;
 
-public class State {
+public enum State {
+    LOGGEDOUT,
+    LOGGEDIN,
+    INGAME,
 }
