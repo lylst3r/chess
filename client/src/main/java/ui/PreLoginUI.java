@@ -1,12 +1,15 @@
 package ui;
 
 import exception.ResponseException;
+import model.AuthData;
+import model.UserData;
 import server.ServerFacade;
 
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class PreLoginUI {
+
     private final ServerFacade server;
     private final UIHelper uiHelper;
     private final String serverUrl;
@@ -23,19 +26,19 @@ public class PreLoginUI {
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("quit")) {
+        while (!"quit".equals(result)) {
             printPrompt();
-            String line = scanner.nextLine();
+            String line = scanner.nextLine().trim();
 
             try {
                 result = eval(line);
-                System.out.print(result);
+                if (result != null && !"quit".equals(result)) {
+                    System.out.println(result);
+                }
             } catch (Throwable e) {
-                var msg = e.toString();
-                System.out.print(msg);
+                System.out.println("Error: " + e.getMessage());
             }
         }
-        System.out.println();
     }
 
     /*public void notify(Notification notification) {
@@ -53,33 +56,58 @@ public class PreLoginUI {
             String[] tokens = input.toLowerCase().split(" ");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+
             return switch (cmd) {
                 case "login" -> login(params);
                 case "register" -> register(params);
-                case "quit" -> quit(params);
-                default -> help();
+                case "quit" -> quit();
+                case "help" -> help();
+                default -> "Unknown command. Type 'help' to see commands.";
             };
+
         } catch (ResponseException ex) {
             return ex.getMessage();
         }
     }
 
-    public String quit(String... params) throws ResponseException {
-        return null;
+    public String quit() {
+        System.out.print("Goodbye!\n");
+        return "quit";
     }
 
     public String login(String... params) throws ResponseException {
-        try {
-            new PostLoginUI(serverUrl).run();
-
-        } catch (Throwable ex) {
-            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+        if (params.length >= 2) {
+            String username = params[0];
+            String password = params[1];
+            try {
+                AuthData auth = server.login(username, password);
+                uiHelper.setAuth(auth);
+                new PostLoginUI(serverUrl, uiHelper).run();
+                return String.format("You signed in as %s.", username);
+            } catch (Exception e) {
+                return "Login failed: " + e.getMessage();
+            }
         }
-        return null;
+        return "Expected: login <username> <password>";
     }
 
     public String register(String... params) throws ResponseException {
-        return null;
+        if (params.length >= 3) {
+            String username = params[0];
+            String password = params[1];
+            String email = params[2];
+            try {
+                UserData user = new UserData(username, password, email);
+                AuthData auth = server.register(user);
+                uiHelper.setState(State.LOGGEDIN);
+                uiHelper.setAuth(auth);
+                new PostLoginUI(serverUrl, uiHelper).run();
+                return String.format("Registered and signed in as %s.", username);
+            } catch (Exception e) {
+                return "Registration failed: " + e.getMessage();
+            }
+        }
+        return "Expected: register <username> <password> <email>";
     }
 
     public String help() {

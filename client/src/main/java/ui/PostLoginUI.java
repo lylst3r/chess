@@ -11,14 +11,14 @@ public class PostLoginUI {
     private final UIHelper uiHelper;
     private final String serverUrl;
 
-    public PostLoginUI(String serverUrl) {
+    public PostLoginUI(String serverUrl,  UIHelper uiHelper) {
         server = new ServerFacade(serverUrl);
-        uiHelper = new UIHelper();
+        this.uiHelper = uiHelper;
         this.serverUrl = serverUrl;
     }
 
     public void run() {
-        System.out.println("Logged in as ");
+        System.out.println("Logged in as " + uiHelper.getAuth().username());
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -81,7 +81,7 @@ public class PostLoginUI {
 
     public String playGame(String... params) throws ResponseException {
         try {
-            new GameplayUI(serverUrl).run();
+            new GameplayUI(serverUrl, uiHelper).run();
 
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
@@ -91,7 +91,7 @@ public class PostLoginUI {
 
     public String observeGame(String... params) throws ResponseException {
         try {
-            new GameplayUI(serverUrl).run();
+            new GameplayUI(serverUrl, uiHelper).run();
 
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
@@ -100,7 +100,8 @@ public class PostLoginUI {
     }
 
     public String quit(String... params) throws ResponseException {
-        return null;
+        System.out.print("Goodbye!\n");
+        return "quit";
     }
 
     public String help() {

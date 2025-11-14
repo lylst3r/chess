@@ -10,7 +10,6 @@ public class Main {
 
         try {
             new PreLoginUI(serverUrl).run();
-            System.out.println("♕ 240 Chess Client:");
 
         } catch (Throwable ex) {
             System.out.printf("Unable to start server: %s%n", ex.getMessage());

@@ -10,9 +10,9 @@ public class GameplayUI {
     private final ServerFacade server;
     private final UIHelper uiHelper;
 
-    public GameplayUI(String serverUrl) {
+    public GameplayUI(String serverUrl, UIHelper uiHelper) {
         server = new ServerFacade(serverUrl);
-        uiHelper = new UIHelper();
+        this.uiHelper = uiHelper;
     }
 
     public void run() {

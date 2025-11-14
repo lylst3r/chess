@@ -1,112 +1,131 @@
 package server;
 
 import com.google.gson.Gson;
-import model.UserData;
-import model.GameData;
-import model.AuthData;
 import exception.ResponseException;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServerFacade {
-    private final HttpClient client = HttpClient.newHttpClient();
+
     private final String serverUrl;
+    private final HttpClient client = HttpClient.newHttpClient();
+    private final Gson gson = new Gson();
 
-    public ServerFacade(String url) {
-        serverUrl = url;
+    public ServerFacade(String serverUrl) {
+        this.serverUrl = serverUrl;
     }
 
-    public void register(UserData user) throws Exception {
-        var request = buildRequest("POST", "/user", user);
-        var response = sendRequest(request);
-        handleResponse(response, UserData.class);
+    // ---------------- PreLogin --------------------
+
+    public AuthData register(UserData user) throws ResponseException {
+        HttpRequest request = buildRequest("POST", "/user", user, null);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, AuthData.class);
     }
 
-    public void login(String username, String password) throws Exception {
-        String body = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
-        var request = buildRequest("POST", "/session", body);
-        var response = sendRequest(request);
-        handleResponse(response, UserData.class);
+    public AuthData login(String username, String password) throws ResponseException {
+        UserData body = new UserData(username, password, null);
+        HttpRequest request = buildRequest("POST", "/session", body, null);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, AuthData.class);
     }
 
-    public void logout(String authToken) throws Exception {
-        var request = buildRequest("DELETE", "/session", authToken);
+    // ---------------- PostLogin --------------------
+
+    public void logout(String authToken) throws ResponseException {
+        HttpRequest request = buildRequest("DELETE", "/session", null, authToken);
         sendRequest(request);
     }
 
-    public ArrayList<GameData>[] listGames(String authToken) throws Exception {
-        var request = buildRequest("GET", "/game", authToken);
-        var response = sendRequest(request);
-        //return handleResponse(response, GameData.class);
-        return null;
+    public GameData[] listGames(String authToken) throws ResponseException {
+        HttpRequest request = buildRequest("GET", "/game", null, authToken);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, GameData[].class);
     }
 
-    public void createGame(String authToken, String gameName) throws Exception {
-        var request = buildRequest("POST", "/game", gameName);
-        var response = sendRequest(request);
-        handleResponse(response, GameData.class);
+    public GameData createGame(String authToken, String gameName) throws ResponseException {
+        Map<String, String> body = new HashMap<>();
+        body.put("name", gameName);
+        HttpRequest request = buildRequest("POST", "/game", body, authToken);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, GameData.class);
     }
 
-    public void joinGame(String authToken, int gameID, String playerColor) throws Exception {
-        var request = buildRequest("POST", "/game", gameID);
-        var response = sendRequest(request);
-        handleResponse(response, GameData.class);
+    public GameData joinGame(String authToken, int gameID, String playerColor) throws ResponseException {
+        Map<String, Object> body = new HashMap<>();
+        body.put("gameID", gameID);
+        body.put("playerColor", playerColor);
+        HttpRequest request = buildRequest("PUT", "/game", body, authToken);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, GameData.class);
     }
 
-    public void clear() throws Exception {
-        var request = buildRequest("DELETE", "/db", null);
+    public void clear() throws ResponseException {
+        HttpRequest request = buildRequest("DELETE", "/db", null, null);
         sendRequest(request);
     }
 
-    private HttpRequest buildRequest(String method, String path, Object body) {
-        var request = HttpRequest.newBuilder()
+    // ---------------- HELPERS --------------------
+
+    private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
-                .method(method, makeRequestBody(body));
-        if (body != null) {
-            request.setHeader("Content-Type", "application/json");
-        }
-        return request.build();
-    }
+                .method(method, body != null
+                        ? HttpRequest.BodyPublishers.ofString(gson.toJson(body))
+                        : HttpRequest.BodyPublishers.noBody());
 
-    private HttpRequest.BodyPublisher makeRequestBody(Object request) {
-        if (request != null) {
-            return HttpRequest.BodyPublishers.ofString(new Gson().toJson(request));
-        } else {
-            return HttpRequest.BodyPublishers.noBody();
+        if (body != null) {
+            builder.header("Content-Type", "application/json");
         }
+        if (authToken != null) {
+            builder.header("Authorization", authToken);
+        }
+
+        return builder.build();
     }
 
     private HttpResponse<String> sendRequest(HttpRequest request) throws ResponseException {
         try {
             return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, "Failed to connect to server");
         }
     }
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
-        var status = response.statusCode();
-        if (!isSuccessful(status)) {
-            var body = response.body();
-            if (body != null) {
-                throw ResponseException.fromJson(body);
+        int status = response.statusCode();
+        String body = response.body();
+
+        if (status / 100 != 2) {
+            String message = "Server error: " + status;
+            if (body != null && !body.isEmpty()) {
+                try {
+                    Map<?, ?> map = gson.fromJson(body, Map.class);
+                    if (map != null && map.get("message") != null) {
+                        message = map.get("message").toString();
+                    }
+                } catch (Exception ignored) {}
             }
 
-            throw new ResponseException(ResponseException.fromHttpStatusCode(status), "other failure: " + status);
+            ResponseException.Code code = switch (status) {
+                case 400 -> ResponseException.Code.BadRequest;
+                case 401 -> ResponseException.Code.Unauthorized;
+                case 403 -> ResponseException.Code.Conflict;
+                default -> ResponseException.Code.ServerError;
+            };
+
+            throw new ResponseException(code, message);
         }
 
-        if (responseClass != null) {
-            return new Gson().fromJson(response.body(), responseClass);
-        }
-
-        return null;
-    }
-
-    private boolean isSuccessful(int status) {
-        return status / 100 == 2;
+        if (responseClass == null) return null;
+        return gson.fromJson(body, responseClass);
     }
 }
