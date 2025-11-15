@@ -1,10 +1,12 @@
 package ui;
 
 import model.AuthData;
+import model.GameData;
 
 public class UIHelper {
     private State state = State.LOGGEDOUT;
     private AuthData auth;
+    private GameData game;
 
     public UIHelper() {}
 
@@ -22,5 +24,13 @@ public class UIHelper {
 
     public void setAuth(AuthData auth) {
         this.auth = auth;
+    }
+
+    public GameData getGame() {
+        return game;
+    }
+
+    public void setGame(GameData game) {
+        this.game = game;
     }
 }

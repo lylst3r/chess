@@ -16,7 +16,7 @@ public class GameplayUI {
     }
 
     public void run() {
-        //System.out.println("Logged in as ");
+        System.out.println("Joined game ");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -56,18 +56,29 @@ public class GameplayUI {
                 default -> help();
             };
         } catch (ResponseException ex) {
-            return ex.getMessage();
+            return "Error: " + ex.getMessage();
         }
     }
 
-    public String quit(String... params) throws ResponseException {
+    public String printWhiteBoard(String... params) {
+
         return null;
+    }
+
+    public String printBlackBoard(String... params) {
+
+        return null;
+    }
+
+    public String quit(String... params) throws ResponseException {
+        System.out.print("Goodbye!\n");
+        return "quit";
     }
 
     public String help() {
             return """
-                - quit --> exit chess
-                - help --> get possible commands
+                - quit       exit chess
+                - help       get possible commands
             """;
     }
 

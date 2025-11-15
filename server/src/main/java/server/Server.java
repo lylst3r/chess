@@ -19,6 +19,8 @@ import server.service.result.ListGamesResult;
 import server.service.result.LoginResult;
 import server.service.result.RegisterResult;
 
+import java.util.ArrayList;
+
 
 public class Server {
 
@@ -108,13 +110,15 @@ public class Server {
 
     }
 
-    private void listGames(Context ctx) throws ResponseException, DataAccessException {
+    private ArrayList<GameData> listGames(Context ctx) throws ResponseException, DataAccessException {
         String authToken = ctx.header("authorization");
 
         ListGamesResult result = handler.listGames(authToken);
         ctx.status(200);
-        ctx.result(gson.toJson(result));
-
+        //ctx.result(gson.toJson(result));
+        ctx.result(gson.toJson(result.games()));
+        ArrayList<GameData> list = result.games();
+        return list;
     }
 
     private void createGame(Context ctx) throws ResponseException, DataAccessException {

@@ -66,7 +66,7 @@ public class PreLoginUI {
             };
 
         } catch (ResponseException ex) {
-            return ex.getMessage();
+            return "Error: " + ex.getMessage();
         }
     }
 
@@ -82,8 +82,16 @@ public class PreLoginUI {
             try {
                 AuthData auth = server.login(username, password);
                 uiHelper.setAuth(auth);
+                uiHelper.setState(State.LOGGEDIN);
+
                 new PostLoginUI(serverUrl, uiHelper).run();
-                return String.format("You signed in as %s.", username);
+
+                if (uiHelper.getState() == State.LOGGEDIN) {
+                    return String.format("You signed in as %s.", username);
+                } else {
+                    System.out.print(help());
+                    return null;
+                }
             } catch (Exception e) {
                 return "Login failed: " + e.getMessage();
             }
@@ -112,10 +120,10 @@ public class PreLoginUI {
 
     public String help() {
             return """
-                - register <username> <password> <email> --> create an account
-                - login <username> <password>
-                - quit --> exit chess
-                - help --> get possible commands
+                - register <username> <password> <email>  create an account
+                - login <username> <password>             login to chess
+                - quit                                    exit chess
+                - help                                    get possible commands
             """;
     }
 

@@ -1,6 +1,9 @@
 package server;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
@@ -48,15 +51,15 @@ public class ServerFacade {
     public GameData[] listGames(String authToken) throws ResponseException {
         HttpRequest request = buildRequest("GET", "/game", null, authToken);
         HttpResponse<String> response = sendRequest(request);
-        return handleResponse(response, GameData[].class);
+        return gsonIgnoreGame.fromJson(response.body(), GameData[].class);
     }
 
     public GameData createGame(String authToken, String gameName) throws ResponseException {
         Map<String, String> body = new HashMap<>();
-        body.put("name", gameName);
+        body.put("gameName", gameName);
         HttpRequest request = buildRequest("POST", "/game", body, authToken);
         HttpResponse<String> response = sendRequest(request);
-        return handleResponse(response, GameData.class);
+        return gsonIgnoreGame.fromJson(response.body(), GameData.class);
     }
 
     public GameData joinGame(String authToken, int gameID, String playerColor) throws ResponseException {
@@ -99,6 +102,16 @@ public class ServerFacade {
             throw new ResponseException(ResponseException.Code.ServerError, "Failed to connect to server");
         }
     }
+
+    private final Gson gsonIgnoreGame = new GsonBuilder()
+            .addSerializationExclusionStrategy(new ExclusionStrategy() {
+                @Override
+                public boolean shouldSkipField(FieldAttributes f) {
+                    return f.getName().equals("game");
+                }
+                @Override
+                public boolean shouldSkipClass(Class<?> clazz) { return false; }
+            }).create();
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
         int status = response.statusCode();
