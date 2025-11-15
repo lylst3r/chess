@@ -115,13 +115,13 @@ public class Server {
 
         ListGamesResult result = handler.listGames(authToken);
         ctx.status(200);
-        //ctx.result(gson.toJson(result));
-        ctx.result(gson.toJson(result.games()));
-        ArrayList<GameData> list = result.games();
-        return list;
+        ctx.result(gson.toJson(result));
+        //ctx.result(gson.toJson(result.games()));
+        //ArrayList<GameData> list = result.games();
+        return result.games();
     }
 
-    private void createGame(Context ctx) throws ResponseException, DataAccessException {
+    private int createGame(Context ctx) throws ResponseException, DataAccessException {
         String authToken = ctx.header("authorization");
         GameData game = gson.fromJson(ctx.body(), GameData.class);
         String gameName = game.gameName();
@@ -129,6 +129,7 @@ public class Server {
         CreateGameResult result = handler.createGame(authToken, gameName);
         ctx.status(200);
         ctx.result(gson.toJson(result));
+        return result.gameID();
     }
 
     private void joinGame(Context ctx) throws ResponseException, DataAccessException {

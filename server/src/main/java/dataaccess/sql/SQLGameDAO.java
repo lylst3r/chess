@@ -78,6 +78,7 @@ public class SQLGameDAO implements GameDAO {
     public void clearGames() throws DataAccessException, ResponseException {
         var statement = "DELETE FROM game";
         executeUpdate(statement);
+        executeUpdate("ALTER TABLE game AUTO_INCREMENT = 1");
     }
 
     private GameData readGame(ResultSet rs) throws SQLException {

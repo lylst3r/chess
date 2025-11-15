@@ -1,12 +1,17 @@
 package ui;
 
+import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
+
+import java.util.ArrayList;
 
 public class UIHelper {
     private State state = State.LOGGEDOUT;
     private AuthData auth;
     private GameData game;
+    private String gameName;
+    private ArrayList<GameTracker> games;
 
     public UIHelper() {}
 
@@ -32,5 +37,27 @@ public class UIHelper {
 
     public void setGame(GameData game) {
         this.game = game;
+    }
+
+    public String getGameName() {
+        return gameName;
+    }
+
+    public void setGameName(String gameName) {
+        this.gameName = gameName;
+    }
+
+    public void addGame(int gameID, String gameName) throws ResponseException {
+        GameTracker game = new GameTracker(gameID, gameName);
+        games.add(game);
+    }
+
+    public String getGameName(int gameID) {
+        for (GameTracker g : games) {
+            if (g.getId() == gameID) {
+                return g.getName();
+            }
+        }
+        return "No game with ID: " + gameID;
     }
 }

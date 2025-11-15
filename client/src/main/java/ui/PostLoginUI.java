@@ -34,7 +34,7 @@ public class PostLoginUI {
             try {
                 result = eval(line);
 
-                if (result.equals("LOGOUT")) {
+                if (result.equals("logout")) {
                     return;
                 }
 
@@ -84,7 +84,7 @@ public class PostLoginUI {
         uiHelper.setAuth(null);
         uiHelper.setState(State.LOGGEDOUT);
         System.out.println("Logging out...");
-        return "LOGOUT";
+        return "logout";
     }
 
     public String createGame(String... params) throws ResponseException {
@@ -95,7 +95,7 @@ public class PostLoginUI {
         String gameName = String.join(" ", params);
         GameData created = server.createGame(uiHelper.getAuth().authToken(), gameName);
 
-        return "Created game: " + created.gameName();
+        return "Created game: " + gameName;
     }
 
     public String listGames(String... params) throws ResponseException {
@@ -136,9 +136,16 @@ public class PostLoginUI {
                 games[gameNumber].gameID(), color);
 
         uiHelper.setGame(joined);
+        uiHelper.setState(State.INGAME);
+        System.out.print("Joining game ");
         new GameplayUI(serverUrl, uiHelper).run();
 
-        return "Joined game " + joined.gameName() + " as " + color;
+        if (uiHelper.getState() == State.INGAME) {
+            return String.format("Joined game " + joined.gameName() + " as " + color);
+        } else {
+            System.out.print(help());
+            return "";
+        }
     }
 
     public String observeGame(String... params) throws ResponseException {
@@ -160,9 +167,16 @@ public class PostLoginUI {
         }
 
         uiHelper.setGame(games[gameNumber]);
+        uiHelper.setState(State.INGAME);
+        System.out.print("Observing game ");
         new GameplayUI(serverUrl, uiHelper).run();
 
-        return "Observing game " + games[gameNumber].gameName();
+        if (uiHelper.getState() == State.INGAME) {
+            return String.format("Observing game " + uiHelper.getGameName(gameNumber));
+        } else {
+            System.out.print(help());
+            return "";
+        }
     }
 
     public String quit(String... params) throws ResponseException {

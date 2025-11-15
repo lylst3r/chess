@@ -20,10 +20,22 @@ public class ServerFacade {
 
     private final String serverUrl;
     private final HttpClient client = HttpClient.newHttpClient();
-    private final Gson gson = new Gson();
+    private final Gson gson;
+
+    // Gson instance that ignores the "game" field in GameData
+    private final Gson gsonIgnoreGame = new GsonBuilder()
+            .addSerializationExclusionStrategy(new ExclusionStrategy() {
+                @Override
+                public boolean shouldSkipField(FieldAttributes f) {
+                    return f.getName().equals("game");
+                }
+                @Override
+                public boolean shouldSkipClass(Class<?> clazz) { return false; }
+            }).create();
 
     public ServerFacade(String serverUrl) {
         this.serverUrl = serverUrl;
+        this.gson = new Gson();
     }
 
     // ---------------- PreLogin --------------------
@@ -51,6 +63,7 @@ public class ServerFacade {
     public GameData[] listGames(String authToken) throws ResponseException {
         HttpRequest request = buildRequest("GET", "/game", null, authToken);
         HttpResponse<String> response = sendRequest(request);
+
         return gsonIgnoreGame.fromJson(response.body(), GameData[].class);
     }
 
@@ -59,6 +72,7 @@ public class ServerFacade {
         body.put("gameName", gameName);
         HttpRequest request = buildRequest("POST", "/game", body, authToken);
         HttpResponse<String> response = sendRequest(request);
+
         return gsonIgnoreGame.fromJson(response.body(), GameData.class);
     }
 
@@ -68,7 +82,8 @@ public class ServerFacade {
         body.put("playerColor", playerColor);
         HttpRequest request = buildRequest("PUT", "/game", body, authToken);
         HttpResponse<String> response = sendRequest(request);
-        return handleResponse(response, GameData.class);
+
+        return gsonIgnoreGame.fromJson(response.body(), GameData.class);
     }
 
     public void clear() throws ResponseException {
@@ -85,12 +100,8 @@ public class ServerFacade {
                         ? HttpRequest.BodyPublishers.ofString(gson.toJson(body))
                         : HttpRequest.BodyPublishers.noBody());
 
-        if (body != null) {
-            builder.header("Content-Type", "application/json");
-        }
-        if (authToken != null) {
-            builder.header("Authorization", authToken);
-        }
+        if (body != null) builder.header("Content-Type", "application/json");
+        if (authToken != null) builder.header("Authorization", authToken);
 
         return builder.build();
     }
@@ -102,16 +113,6 @@ public class ServerFacade {
             throw new ResponseException(ResponseException.Code.ServerError, "Failed to connect to server");
         }
     }
-
-    private final Gson gsonIgnoreGame = new GsonBuilder()
-            .addSerializationExclusionStrategy(new ExclusionStrategy() {
-                @Override
-                public boolean shouldSkipField(FieldAttributes f) {
-                    return f.getName().equals("game");
-                }
-                @Override
-                public boolean shouldSkipClass(Class<?> clazz) { return false; }
-            }).create();
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
         int status = response.statusCode();

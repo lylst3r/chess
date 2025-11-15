@@ -109,8 +109,15 @@ public class PreLoginUI {
                 AuthData auth = server.register(user);
                 uiHelper.setState(State.LOGGEDIN);
                 uiHelper.setAuth(auth);
+                System.out.println("Registered user: " + username);
                 new PostLoginUI(serverUrl, uiHelper).run();
-                return String.format("Registered and signed in as %s.", username);
+
+                if (uiHelper.getState() == State.LOGGEDIN) {
+                    return String.format("Registered and signed in as %s.", username);
+                } else {
+                    System.out.print(help());
+                    return null;
+                }
             } catch (Exception e) {
                 return "Registration failed: " + e.getMessage();
             }
