@@ -15,6 +15,7 @@ public class PreLoginUI {
     private final String serverUrl;
 
     public PreLoginUI(String serverUrl) {
+        //System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_BROWN);
         server = new ServerFacade(serverUrl);
         uiHelper = new UIHelper();
         this.serverUrl = serverUrl;
@@ -40,11 +41,6 @@ public class PreLoginUI {
             }
         }
     }
-
-    /*public void notify(Notification notification) {
-        System.out.println(RED + notification.message());
-        printPrompt();
-    }*/
 
     private void printPrompt() {
         System.out.print("\n" + "[LOGGED_OUT] >>> ");
@@ -106,29 +102,26 @@ public class PreLoginUI {
         if (!params[2].contains(String.valueOf("@"))) {
             throw new ResponseException(ResponseException.Code.ClientError, "Please enter a valid email.");
         }
-        if (params.length == 3) {
-            String username = params[0];
-            String password = params[1];
-            String email = params[2];
-            try {
-                UserData user = new UserData(username, password, email);
-                AuthData auth = server.register(user);
-                uiHelper.setState(State.LOGGEDIN);
-                uiHelper.setAuth(auth);
-                System.out.println("Registered user: " + username);
-                new PostLoginUI(serverUrl, uiHelper).run();
+        String username = params[0];
+        String password = params[1];
+        String email = params[2];
+        try {
+            UserData user = new UserData(username, password, email);
+            AuthData auth = server.register(user);
+            uiHelper.setState(State.LOGGEDIN);
+            uiHelper.setAuth(auth);
+            System.out.println("Registered user: " + username);
+            new PostLoginUI(serverUrl, uiHelper).run();
 
-                if (uiHelper.getState() == State.LOGGEDIN) {
-                    return String.format("Registered and signed in as %s.", username);
-                } else {
-                    System.out.print(help());
-                    return null;
-                }
-            } catch (Exception e) {
-                throw new ResponseException(ResponseException.Code.ServerError, "Registration failed: " + e.getMessage());
+            if (uiHelper.getState() == State.LOGGEDIN) {
+                return String.format("Registered and signed in as %s.", username);
+            } else {
+                System.out.print(help());
+                return null;
             }
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, "Registration failed: " + e.getMessage());
         }
-        return "Expected: register <username> <password> <email>";
     }
 
     public String help() {

@@ -1,12 +1,9 @@
 package ui;
 
 import exception.ResponseException;
-import model.AuthData;
 import model.GameData;
-import model.UserData;
 import server.ServerFacade;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -50,11 +47,6 @@ public class PostLoginUI {
             }
         }
     }
-
-    /*public void notify(Notification notification) {
-        System.out.println(RED + notification.message());
-        printPrompt();
-    }*/
 
     private void printPrompt() {
         System.out.print("\n" + "[LOGGED_IN] >>> ");
@@ -127,7 +119,7 @@ public class PostLoginUI {
         if (params.length != 2) {
             throw new ResponseException(ResponseException.Code.ClientError, "Expected: join <gameNumber> <LIGHT|DARK>");
         }
-        if (!params[1].equals("LIGHT") && !params[1].equals("DARK")) {
+        if (!params[1].equals("LIGHT") && !params[1].equals("DARK") && !params[1].equals("light") && !params[1].equals("dark")) {
             throw new ResponseException(ResponseException.Code.ClientError, "Must enter 'LIGHT' or 'DARK' for team color.");
         }
 
@@ -149,7 +141,8 @@ public class PostLoginUI {
 
         uiHelper.setGame(joined);
         uiHelper.setState(State.INGAME);
-        System.out.print("Joining game " + games[gameNumber].gameName() + "\n");
+        uiHelper.setColor(color);
+        System.out.print("Joining game " + games[gameNumber].gameName() + " as " + color + "\n");
         new GameplayUI(serverUrl, uiHelper).run();
 
         if (uiHelper.getState() == State.INGAME) {
