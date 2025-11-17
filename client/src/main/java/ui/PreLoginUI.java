@@ -21,7 +21,7 @@ public class PreLoginUI {
     }
 
     public void run() {
-        System.out.println("Welcome to Chess. Sign in to start.");
+        System.out.println("Welcome to Chess! Sign in to start.");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -76,7 +76,7 @@ public class PreLoginUI {
     }
 
     public String login(String... params) throws ResponseException {
-        if (params.length >= 2) {
+        if (params.length == 2) {
             String username = params[0];
             String password = params[1];
             try {
@@ -96,11 +96,17 @@ public class PreLoginUI {
                 return "Login failed: " + e.getMessage();
             }
         }
-        return "Expected: login <username> <password>";
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected: login <username> <password>");
     }
 
     public String register(String... params) throws ResponseException {
-        if (params.length >= 3) {
+        if (params.length != 3) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: register <username> <password> <email>");
+        }
+        if (!params[2].contains(String.valueOf("@"))) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Please enter a valid email.");
+        }
+        if (params.length == 3) {
             String username = params[0];
             String password = params[1];
             String email = params[2];
@@ -119,7 +125,7 @@ public class PreLoginUI {
                     return null;
                 }
             } catch (Exception e) {
-                return "Registration failed: " + e.getMessage();
+                throw new ResponseException(ResponseException.Code.ServerError, "Registration failed: " + e.getMessage());
             }
         }
         return "Expected: register <username> <password> <email>";

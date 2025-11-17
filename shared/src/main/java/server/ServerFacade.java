@@ -63,9 +63,20 @@ public class ServerFacade {
     public GameData[] listGames(String authToken) throws ResponseException {
         HttpRequest request = buildRequest("GET", "/game", null, authToken);
         HttpResponse<String> response = sendRequest(request);
+        String json = response.body();
 
-        return gsonIgnoreGame.fromJson(response.body(), GameData[].class);
+        try {
+            return gsonIgnoreGame.fromJson(json, GameData[].class);
+        } catch (Exception e) {
+            GamesWrapper wrapper = gsonIgnoreGame.fromJson(json, GamesWrapper.class);
+            return wrapper.games;
+        }
     }
+
+    private static class GamesWrapper {
+        GameData[] games;
+    }
+
 
     public GameData createGame(String authToken, String gameName) throws ResponseException {
         Map<String, String> body = new HashMap<>();

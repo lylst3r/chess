@@ -6,6 +6,7 @@ import model.GameData;
 import model.UserData;
 import server.ServerFacade;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -62,8 +63,9 @@ public class PostLoginUI {
 
     public String eval(String input) {
         try {
-            String[] tokens = input.toLowerCase().split(" ");
-            String cmd = (tokens.length > 0) ? tokens[0] : "help";
+            String[] tokens = input.split(" ");
+            String cmd = tokens.length > 0 ? tokens[0].toLowerCase() : "help";
+
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "logout" -> logout();
@@ -88,17 +90,24 @@ public class PostLoginUI {
     }
 
     public String createGame(String... params) throws ResponseException {
-        if (params.length < 1) {
-            return "Expected: create <gameName>";
+        if (params.length != 1) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: create <gameName>");
         }
+        try {
+            String gameName = String.join(" ", params);
+            GameData created = server.createGame(uiHelper.getAuth().authToken(), gameName);
 
-        String gameName = String.join(" ", params);
-        GameData created = server.createGame(uiHelper.getAuth().authToken(), gameName);
-
-        return "Created game: " + gameName;
+            return "Created game: " + gameName;
+        } catch (ResponseException ex) {
+            throw new ResponseException(ResponseException.Code.ServerError, "Unable to create game.");
+        }
     }
 
     public String listGames(String... params) throws ResponseException {
+        if (params.length != 0) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: list");
+        }
+
         GameData[] games = server.listGames(uiHelper.getAuth().authToken());
 
         if (games == null || games.length == 0) {
@@ -108,36 +117,39 @@ public class PostLoginUI {
         StringBuilder sb = new StringBuilder("Games:\n");
         for (int i = 0; i < games.length; i++) {
             GameData g = games[i];
-            sb.append(String.format("%d) %s (id=%d)\n", i + 1, g.gameName(), g.gameID()));
+            sb.append(String.format("%d) %s\n", i + 1, g.gameName()));
         }
 
         return sb.toString();
     }
 
     public String playGame(String... params) throws ResponseException {
-        if (params.length < 2) {
-            return "Expected: join <gameNumber> <LIGHT|DARK>";
+        if (params.length != 2) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: join <gameNumber> <LIGHT|DARK>");
+        }
+        if (!params[1].equals("LIGHT") && !params[1].equals("DARK")) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Must enter 'LIGHT' or 'DARK' for team color.");
         }
 
         int gameNumber;
         try {
             gameNumber = Integer.parseInt(params[0]) - 1;
         } catch (NumberFormatException e) {
-            return "Invalid game number.";
+            return "Invalid game number. Pick a different game number.";
         }
 
         String color = params[1].toUpperCase();
         GameData[] games = server.listGames(uiHelper.getAuth().authToken());
 
         if (gameNumber < 0 || gameNumber >= games.length) {
-            return "Game number out of range.";
+            return "Game doesn't exist. Pick a different game number.";
         }
         GameData joined = server.joinGame(uiHelper.getAuth().authToken(),
                 games[gameNumber].gameID(), color);
 
         uiHelper.setGame(joined);
         uiHelper.setState(State.INGAME);
-        System.out.print("Joining game ");
+        System.out.print("Joining game " + games[gameNumber].gameName() + "\n");
         new GameplayUI(serverUrl, uiHelper).run();
 
         if (uiHelper.getState() == State.INGAME) {
@@ -168,7 +180,7 @@ public class PostLoginUI {
 
         uiHelper.setGame(games[gameNumber]);
         uiHelper.setState(State.INGAME);
-        System.out.print("Observing game ");
+        System.out.print("Observing game " + games[gameNumber].gameName() + "\n");
         new GameplayUI(serverUrl, uiHelper).run();
 
         if (uiHelper.getState() == State.INGAME) {
@@ -185,13 +197,13 @@ public class PostLoginUI {
 
     public String help() {
             return """
-                - create <gameName>            create a new game
-                - list                         get chess games
-                - join <gameID> [LIGHT|DARK]   join as a player
-                - observe <gameID>             watch a game
-                - logout                       return to login screen
-                - quit                         exit chess
-                - help                         get possible commands
+                - create <gameName>              create a new game
+                - list                           get chess games
+                - join <gameNumber> [LIGHT|DARK] join as a player
+                - observe <gameNumber>           watch a game
+                - logout                         return to login screen
+                - quit                           exit chess
+                - help                           get possible commands
             """;
     }
 

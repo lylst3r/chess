@@ -115,7 +115,7 @@ public class Server {
 
         ListGamesResult result = handler.listGames(authToken);
         ctx.status(200);
-        ctx.result(gson.toJson(result));
+        ctx.result(gson.toJson(result.games()));
         //ctx.result(gson.toJson(result.games()));
         //ArrayList<GameData> list = result.games();
         return result.games();

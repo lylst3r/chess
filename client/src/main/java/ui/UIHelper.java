@@ -12,6 +12,7 @@ public class UIHelper {
     private GameData game;
     private String gameName;
     private ArrayList<GameTracker> games;
+    private String color;
 
     public UIHelper() {}
 
@@ -59,5 +60,13 @@ public class UIHelper {
             }
         }
         return "No game with ID: " + gameID;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }
