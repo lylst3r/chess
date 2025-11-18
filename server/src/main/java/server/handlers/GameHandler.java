@@ -22,32 +22,32 @@ public class GameHandler {
     }
 
     public ListGamesResult listGames(String authToken) throws ResponseException, DataAccessException {
-        AuthData auth = service.getAuth(authToken);
-        if (auth == null) {
-            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
-        }
-
+        requireAuth(authToken);
         return service.listGames(authToken);
     }
 
     public CreateGameResult createGame(String authToken, String gameName) throws ResponseException, DataAccessException {
-        AuthData auth = service.getAuth(authToken);
-        if (auth == null) {
-            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
-        }
-
+        requireAuth(authToken);
         CreateGameRequest request = new CreateGameRequest(gameName);
-        return service.createGame(request);
+        return service.createGame(authToken, request);
     }
 
     public void joinGame(String authToken, JoinGameRequest request) throws ResponseException, DataAccessException {
+        AuthData auth = requireAuth(authToken);
+        service.joinGame(request, auth.username());
+    }
+
+    private AuthData requireAuth(String authToken) throws ResponseException, DataAccessException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        }
+
         AuthData auth = service.getAuth(authToken);
         if (auth == null) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
         }
 
-        String username = auth.username();
-
-        service.joinGame(request, username);
+        return auth;
     }
+
 }

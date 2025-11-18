@@ -149,7 +149,6 @@ public class Server {
 
         ctx.status(200);
         ctx.result(gson.toJson(wrapper));
-
     }
 
     private void clear(Context ctx) throws DataAccessException, ResponseException {
@@ -158,4 +157,6 @@ public class Server {
         ctx.status(200);
         ctx.result("");
     }
+
+
 }

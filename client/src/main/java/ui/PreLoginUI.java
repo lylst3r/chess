@@ -78,6 +78,8 @@ public class PreLoginUI {
             try {
                 AuthData auth = server.login(username, password);
                 uiHelper.setAuth(auth);
+                server.setAuthToken(auth.authToken());
+
                 uiHelper.setState(State.LOGGEDIN);
 
                 new PostLoginUI(serverUrl, uiHelper).run();
@@ -92,15 +94,18 @@ public class PreLoginUI {
                 return "Login failed: " + e.getMessage();
             }
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected: login <username> <password>");
+        throw new ResponseException(ResponseException.Code.ClientError,
+                "Expected: login <username> <password>");
     }
 
     public String register(String... params) throws ResponseException {
         if (params.length != 3) {
-            throw new ResponseException(ResponseException.Code.ClientError, "Expected: register <username> <password> <email>");
+            throw new ResponseException(ResponseException.Code.ClientError,
+                    "Expected: register <username> <password> <email>");
         }
         if (!params[2].contains(String.valueOf("@"))) {
-            throw new ResponseException(ResponseException.Code.ClientError, "Please enter a valid email.");
+            throw new ResponseException(ResponseException.Code.ClientError,
+                    "Please enter a valid email.");
         }
         String username = params[0];
         String password = params[1];
@@ -120,7 +125,8 @@ public class PreLoginUI {
                 return null;
             }
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, "Registration failed: " + e.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    "Registration failed: " + e.getMessage());
         }
     }
 

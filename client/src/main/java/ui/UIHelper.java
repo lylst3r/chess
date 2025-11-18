@@ -63,6 +63,9 @@ public class UIHelper {
     }
 
     public String getColor() {
+        if (color == null) {
+            return "";
+        }
         return color;
     }
 

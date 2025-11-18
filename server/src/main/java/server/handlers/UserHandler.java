@@ -31,6 +31,15 @@ public class UserHandler {
     }
 
     public void logout(String authToken) throws ResponseException, DataAccessException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        }
+
+        var auth = service.getAuth(authToken);
+        if (auth == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        }
+
         LogoutRequest logoutRequest = new LogoutRequest(authToken);
         service.logout(logoutRequest);
     }

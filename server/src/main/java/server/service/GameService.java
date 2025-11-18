@@ -35,7 +35,12 @@ public class GameService {
         }
     }
 
-    public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
+    public CreateGameResult createGame(String authToken, CreateGameRequest request) throws ResponseException, DataAccessException {
+        var auth = dao.getAuthDAO().getAuth(authToken);
+        if (auth == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: unauthorized");
+        }
+
         try {
             ChessGame chessGame = new ChessGame();
             String gameName = request.gameName();

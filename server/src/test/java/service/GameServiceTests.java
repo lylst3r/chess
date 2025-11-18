@@ -3,6 +3,7 @@ package service;
 import dataaccess.DataAccessException;
 import dataaccess.memory.MemoryDataAccessDAO;
 import exception.ResponseException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.service.Service;
 import server.service.request.CreateGameRequest;
@@ -16,70 +17,67 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class GameServiceTests {
 
-     MemoryDataAccessDAO dao;
-     Service service;
+    private MemoryDataAccessDAO dao;
+    private Service service;
+    private RegisterResult user1;
+    private RegisterResult user2;
 
-    public GameServiceTests() {
-
+    @BeforeEach
+    void setup() throws ResponseException, DataAccessException {
         dao = new MemoryDataAccessDAO();
         service = new Service(dao);
 
+        user1 = service.register(new RegisterRequest("alice", "password", "alice@email.com"));
+        user2 = service.register(new RegisterRequest("bob", "password", "bob@email.com"));
     }
 
     @Test
     void createGameSucceeds() throws ResponseException, DataAccessException {
-        RegisterResult r = service.register(new RegisterRequest("kalea", "1234", "kalea@email.com"));
-        CreateGameResult game = service.createGame(new CreateGameRequest("bestGameEver"));
+        CreateGameResult game = service.createGame(user1.authToken(), new CreateGameRequest("BestGame"));
 
-        assertTrue(game.gameID() > 0);
+        assertTrue(game.gameID() > 0, "Game ID should be greater than 0");
     }
 
     @Test
-    void createGameFailsForNullName() {
+    void createGameFailsForEmptyName() {
         assertThrows(ResponseException.class, () -> {
-            service.createGame(new CreateGameRequest(""));
+            service.createGame(user1.authToken(), new CreateGameRequest(""));
         });
     }
 
     @Test
     void joinGameSucceeds() throws ResponseException, DataAccessException {
-        RegisterResult lily = service.register(new RegisterRequest("lily", "password", "lily@email.com"));
-        RegisterResult unicorns = service.register(new RegisterRequest("unicorns", "pwd", "unicorns@email.com"));
+        CreateGameResult game = service.createGame(user1.authToken(), new CreateGameRequest("ChessBattle"));
 
-        CreateGameResult game = service.createGame(new CreateGameRequest("myGame"));
-        service.joinGame(new JoinGameRequest("BLACK", game.gameID()), "unicorns");
+        service.joinGame(new JoinGameRequest("BLACK", game.gameID()), user2.username());
 
-        assertEquals("unicorns", dao.getGameDAO().getGame(game.gameID()).blackUsername());
+        assertEquals("bob", dao.getGameDAO().getGame(game.gameID()).blackUsername());
     }
 
     @Test
     void joinGameFailsIfSpotTaken() throws ResponseException, DataAccessException {
-        RegisterResult lily = service.register(new RegisterRequest("lily", "pwd", "lily@email.com"));
-        RegisterResult potato = service.register(new RegisterRequest("potato", "pwd", "potato@email.com"));
-        RegisterResult charlie = service.register(new RegisterRequest("charlie", "pwd", "charlie@email.com"));
+        CreateGameResult game = service.createGame(user1.authToken(), new CreateGameRequest("EpicGame"));
 
-        CreateGameResult game = service.createGame(new CreateGameRequest("aGame"));
-        service.joinGame(new JoinGameRequest("BLACK", game.gameID()), "potato");
+        service.joinGame(new JoinGameRequest("WHITE", game.gameID()), user2.username());
 
         assertThrows(ResponseException.class, () -> {
-            service.joinGame(new JoinGameRequest("BLACK", game.gameID()), "charlie");
+            service.joinGame(new JoinGameRequest("WHITE", game.gameID()), user1.username());
         });
     }
 
     @Test
     void listGamesReturnsAllGames() throws ResponseException, DataAccessException {
-        RegisterResult lily = service.register(new RegisterRequest("lily", "pwd", "lily@email.com"));
-        service.createGame(new CreateGameRequest("yay"));
+        service.createGame(user1.authToken(), new CreateGameRequest("GameOne"));
+        service.createGame(user1.authToken(), new CreateGameRequest("GameTwo"));
 
-        ListGamesResult result = service.listGames(lily.authToken());
-        assertEquals(1, result.games().size());
+        ListGamesResult result = service.listGames(user1.authToken());
+        assertEquals(2, result.games().size(), "Should return all created games");
     }
 
     @Test
-    void listGamesFailsForBadAuth() throws ResponseException, DataAccessException {
+    void listGamesFailsForInvalidAuth() {
         assertThrows(ResponseException.class, () -> {
-            service.listGames(null);
+            service.listGames("invalid-token");
         });
     }
-
 }

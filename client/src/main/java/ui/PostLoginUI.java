@@ -74,6 +74,9 @@ public class PostLoginUI {
     }
 
     public String logout() throws ResponseException {
+        if (uiHelper.getAuth().authToken() == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
         server.logout(uiHelper.getAuth().authToken());
         uiHelper.setAuth(null);
         uiHelper.setState(State.LOGGEDOUT);
@@ -83,7 +86,8 @@ public class PostLoginUI {
 
     public String createGame(String... params) throws ResponseException {
         if (params.length != 1) {
-            throw new ResponseException(ResponseException.Code.ClientError, "Expected: create <gameName>");
+            throw new ResponseException(ResponseException.Code.ClientError,
+                    "Expected: create <gameName>");
         }
         try {
             String gameName = String.join(" ", params);
@@ -96,6 +100,9 @@ public class PostLoginUI {
     }
 
     public String listGames(String... params) throws ResponseException {
+        if (uiHelper.getAuth().authToken() == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
         if (params.length != 0) {
             throw new ResponseException(ResponseException.Code.ClientError, "Expected: list");
         }
@@ -117,11 +124,17 @@ public class PostLoginUI {
     }
 
     public String playGame(String... params) throws ResponseException {
-        if (params.length != 2) {
-            throw new ResponseException(ResponseException.Code.ClientError, "Expected: join <gameNumber> <LIGHT|DARK>");
+        if (uiHelper.getAuth().authToken() == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
-        if (!params[1].equals("LIGHT") && !params[1].equals("DARK") && !params[1].equals("light") && !params[1].equals("dark")) {
-            throw new ResponseException(ResponseException.Code.ClientError, "Must enter 'LIGHT' or 'DARK' for team color.");
+        if (params.length != 2) {
+            throw new ResponseException(ResponseException.Code.ClientError,
+                    "Expected: join <gameNumber> <LIGHT|DARK>");
+        }
+        if (!params[1].equals("LIGHT") && !params[1].equals("DARK")
+                && !params[1].equals("light") && !params[1].equals("dark")) {
+            throw new ResponseException(ResponseException.Code.ClientError,
+                    "Must enter 'LIGHT' or 'DARK' for team color.");
         }
 
         int gameNumber;
@@ -155,7 +168,10 @@ public class PostLoginUI {
     }
 
     public String observeGame(String... params) throws ResponseException {
-        if (params.length < 1) {
+        if (uiHelper.getAuth().authToken() == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+        if (params.length != 1) {
             return "Expected: observe <gameNumber>";
         }
 

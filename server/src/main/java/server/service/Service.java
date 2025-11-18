@@ -47,8 +47,8 @@ public class Service {
         return gameService.listGames(authToken);
     }
 
-    public CreateGameResult createGame(CreateGameRequest request) throws ResponseException, DataAccessException {
-        return gameService.createGame(request);
+    public CreateGameResult createGame(String authToken, CreateGameRequest request) throws ResponseException, DataAccessException {
+        return gameService.createGame(authToken, request);
     }
 
     public void joinGame(JoinGameRequest request, String username) throws ResponseException, DataAccessException {

@@ -1,9 +1,6 @@
 package server;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
@@ -20,25 +17,19 @@ public class ServerFacade {
 
     private final String serverUrl;
     private final HttpClient client = HttpClient.newHttpClient();
-    private final Gson gson;
+    private final Gson gson = new Gson();
 
-    // Gson instance that ignores the "game" field in GameData
-    private final Gson gsonIgnoreGame = new GsonBuilder()
-            .addSerializationExclusionStrategy(new ExclusionStrategy() {
-                @Override
-                public boolean shouldSkipField(FieldAttributes f) {
-                    return f.getName().equals("game");
-                }
-                @Override
-                public boolean shouldSkipClass(Class<?> clazz) { return false; }
-            }).create();
+    private String authToken;
 
     public ServerFacade(String serverUrl) {
         this.serverUrl = serverUrl;
-        this.gson = new Gson();
     }
 
-    // ---------------- PreLogin --------------------
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    //preLogin
 
     public AuthData register(UserData user) throws ResponseException {
         HttpRequest request = buildRequest("POST", "/user", user, null);
@@ -53,48 +44,125 @@ public class ServerFacade {
         return handleResponse(response, AuthData.class);
     }
 
-    // ---------------- PostLogin --------------------
+    //postLogin
 
     public void logout(String authToken) throws ResponseException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new ResponseException(ResponseException.Code.Unauthorized,
+                    "Error: Unauthorized");
+        }
+
         HttpRequest request = buildRequest("DELETE", "/session", null, authToken);
-        sendRequest(request);
+        HttpResponse<String> response = sendRequest(request);
+
+        if (response.statusCode() == 401) {
+            throw new ResponseException(ResponseException.Code.Unauthorized,
+                    "Error: Unauthorized");
+        }
+
+        authToken = null;
     }
 
     public GameData[] listGames(String authToken) throws ResponseException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+
         HttpRequest request = buildRequest("GET", "/game", null, authToken);
         HttpResponse<String> response = sendRequest(request);
-        String json = response.body();
 
-        try {
-            GamesWrapper wrapper = gsonIgnoreGame.fromJson(json, GamesWrapper.class);
-            return wrapper.games != null ? wrapper.games : new GameData[0];
-        } catch (com.google.gson.JsonSyntaxException e) {
-            return new GameData[0];
+        if (response.statusCode() == 401) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
-    }
 
-    private static class GamesWrapper {
-        GameData[] games;
-    }
+        Map<String, Object> wrapper = gson.fromJson(response.body(), Map.class);
 
+        var list = (java.util.List<Map<String, Object>>) wrapper.get("games");
+
+        GameData[] result = new GameData[list.size()];
+
+        for (int i = 0; i < list.size(); i++) {
+            Map<String, Object> g = list.get(i);
+            result[i] = new GameData(
+                    ((Number) g.get("gameID")).intValue(),
+                    (String) g.get("whiteUsername"),
+                    (String) g.get("blackUsername"),
+                    (String) g.get("gameName"),
+                    null
+            );
+        }
+
+        return result;
+    }
 
     public GameData createGame(String authToken, String gameName) throws ResponseException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+
         Map<String, String> body = new HashMap<>();
         body.put("gameName", gameName);
+
         HttpRequest request = buildRequest("POST", "/game", body, authToken);
         HttpResponse<String> response = sendRequest(request);
 
-        return gsonIgnoreGame.fromJson(response.body(), GameData.class);
+        if (response.statusCode() == 401) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+
+        return gson.fromJson(response.body(), GameData.class);
     }
 
     public GameData joinGame(String authToken, int gameID, String playerColor) throws ResponseException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+
+        if (playerColor == null || playerColor.isBlank()) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Player color cannot be empty");
+        }
+
+        String color = switch (playerColor.trim().toUpperCase()) {
+            case "LIGHT" -> "WHITE";
+            case "DARK"  -> "BLACK";
+            default -> throw new ResponseException(ResponseException.Code.BadRequest,
+                    "Must enter 'LIGHT' or 'DARK' for team color.");
+        };
+
         Map<String, Object> body = new HashMap<>();
+        body.put("playerColor", color);
         body.put("gameID", gameID);
-        body.put("playerColor", playerColor);
+
         HttpRequest request = buildRequest("PUT", "/game", body, authToken);
         HttpResponse<String> response = sendRequest(request);
 
-        return gsonIgnoreGame.fromJson(response.body(), GameData.class);
+        int status = response.statusCode();
+        if (status / 100 != 2) {
+            handleResponse(response, null);
+        }
+
+        Map<String, Object> wrapper = gson.fromJson(response.body(), Map.class);
+        Object gamesObj = wrapper.get("games");
+        if (gamesObj == null) {
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    "Server returned no games after joining");
+        }
+
+        java.util.List<Map<String, Object>> list = (java.util.List<Map<String, Object>>) gamesObj;
+        for (var g : list) {
+            int id = ((Number) g.get("gameID")).intValue();
+            if (id == gameID) {
+                return new GameData(
+                        id,
+                        (String) g.get("whiteUsername"),
+                        (String) g.get("blackUsername"),
+                        (String) g.get("gameName"),
+                        null
+                );
+            }
+        }
+
+        throw new ResponseException(ResponseException.Code.BadRequest, "Game not found after join");
     }
 
     public void clear() throws ResponseException {
@@ -102,7 +170,7 @@ public class ServerFacade {
         sendRequest(request);
     }
 
-    // ---------------- HELPERS --------------------
+    //HELPERS
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
@@ -111,8 +179,12 @@ public class ServerFacade {
                         ? HttpRequest.BodyPublishers.ofString(gson.toJson(body))
                         : HttpRequest.BodyPublishers.noBody());
 
-        if (body != null) builder.header("Content-Type", "application/json");
-        if (authToken != null) builder.header("Authorization", authToken);
+        if (body != null) {
+            builder.header("Content-Type", "application/json");
+        }
+        if (authToken != null) {
+            builder.header("Authorization", authToken);
+        }
 
         return builder.build();
     }
@@ -124,6 +196,16 @@ public class ServerFacade {
             throw new ResponseException(ResponseException.Code.ServerError, "Failed to connect to server");
         }
     }
+
+    private final Gson gsonIgnoreGame = new GsonBuilder()
+            .addSerializationExclusionStrategy(new ExclusionStrategy() {
+                @Override
+                public boolean shouldSkipField(FieldAttributes f) {
+                    return f.getName().equals("game");
+                }
+                @Override
+                public boolean shouldSkipClass(Class<?> clazz) { return false; }
+            }).create();
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
         int status = response.statusCode();

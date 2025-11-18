@@ -49,5 +49,4 @@ public class Handler {
     public void joinGame(String authToken, JoinGameRequest request) throws ResponseException, DataAccessException {
         gameHandler.joinGame(authToken, request);
     }
-
 }
