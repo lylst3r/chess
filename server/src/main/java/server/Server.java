@@ -20,6 +20,8 @@ import server.service.result.LoginResult;
 import server.service.result.RegisterResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Server {
@@ -114,10 +116,12 @@ public class Server {
         String authToken = ctx.header("authorization");
 
         ListGamesResult result = handler.listGames(authToken);
+
+        Map<String, Object> wrapper = new HashMap<>();
+        wrapper.put("games", result.games());
+
         ctx.status(200);
-        ctx.result(gson.toJson(result.games()));
-        //ctx.result(gson.toJson(result.games()));
-        //ArrayList<GameData> list = result.games();
+        ctx.result(gson.toJson(wrapper));
         return result.games();
     }
 
@@ -137,8 +141,14 @@ public class Server {
         JoinGameRequest request = gson.fromJson(ctx.body(), JoinGameRequest.class);
 
         handler.joinGame(authToken, request);
+
+        ListGamesResult result = handler.listGames(authToken);
+
+        Map<String, Object> wrapper = new HashMap<>();
+        wrapper.put("games", result.games());
+
         ctx.status(200);
-        ctx.result("");
+        ctx.result(gson.toJson(wrapper));
 
     }
 

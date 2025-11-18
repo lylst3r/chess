@@ -41,6 +41,7 @@ public class SQLUserDAO implements UserDAO {
     }
 
     public void clearUsers() throws ResponseException, DataAccessException {
+        //System.out.println("Clearing all users");
         var statement = "DELETE FROM user";
         executeUpdate(statement);
     }

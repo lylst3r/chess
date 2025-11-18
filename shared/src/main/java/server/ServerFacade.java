@@ -66,10 +66,10 @@ public class ServerFacade {
         String json = response.body();
 
         try {
-            return gsonIgnoreGame.fromJson(json, GameData[].class);
-        } catch (Exception e) {
             GamesWrapper wrapper = gsonIgnoreGame.fromJson(json, GamesWrapper.class);
-            return wrapper.games;
+            return wrapper.games != null ? wrapper.games : new GameData[0];
+        } catch (com.google.gson.JsonSyntaxException e) {
+            return new GameData[0];
         }
     }
 

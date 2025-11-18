@@ -66,19 +66,28 @@ public class SQLGameDAO implements GameDAO {
             var statement = "UPDATE game SET whiteUsername = ?, blackUsername = ?, " +
                     "gameName = ?, game = ? WHERE gameID = ?";
 
-            executeUpdate(statement, updatedGame.whiteUsername(), updatedGame.blackUsername(),
-                    updatedGame.gameName(), updatedGame.game(), gameID);
+            String json = new Gson().toJson(updatedGame.game());
 
-        } catch (Exception e) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, updatedGame.whiteUsername());
+                ps.setString(2, updatedGame.blackUsername());
+                ps.setString(3, updatedGame.gameName());
+                ps.setString(4, json);
+                ps.setInt(5, gameID);
+
+                ps.executeUpdate();
+            }
+
+        } catch (SQLException e) {
             throw new ResponseException(ResponseException.Code.ServerError,
-                    String.format("Error: Unable to read data: %s", e.getMessage()));
+                    "Error updating game: " + e.getMessage());
         }
     }
 
     public void clearGames() throws DataAccessException, ResponseException {
         var statement = "DELETE FROM game";
         executeUpdate(statement);
-        executeUpdate("ALTER TABLE game AUTO_INCREMENT = 1");
+        //executeUpdate("ALTER TABLE game AUTO_INCREMENT = 1");
     }
 
     private GameData readGame(ResultSet rs) throws SQLException {
