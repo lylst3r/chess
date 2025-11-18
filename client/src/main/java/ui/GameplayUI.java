@@ -120,16 +120,16 @@ public class GameplayUI {
                 new String[]{"h","g","f","e","d","c","b","a"};
 
         System.out.print("  ");
-        for (String c : columns) System.out.print(c + "   ");
+        for (String c : columns){
+            System.out.print(c + "   ");
+        }
         System.out.println();
 
         if (isWhitePerspective) {
             for (int row = 7; row >= 0; row--) {
                 System.out.print((row + 1) + " ");
                 for (int col = 0; col < 8; col++) {
-                    boolean light = (row + col) % 2 != 0;
-                    String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
-                    System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
+                   printBoardHelper(row, col, board);
                 }
                 System.out.println(" " + (row + 1));
             }
@@ -137,19 +137,25 @@ public class GameplayUI {
             for (int row = 0; row < 8; row++) {
                 System.out.print((row + 1) + " ");
                 for (int col = 7; col >= 0; col--) {
-                    boolean light = (row + col) % 2 != 0;
-                    String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
-                    System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
+                    printBoardHelper(row, col, board);
                 }
                 System.out.println(" " + (row + 1));
             }
         }
 
         System.out.print("  ");
-        for (String c : columns) System.out.print(c + "   ");
+        for (String c : columns) {
+            System.out.print(c + "   ");
+        }
         System.out.println("\n");
 
         return "";
+    }
+
+    public void printBoardHelper(int row, int col, String[][] board) {
+        boolean light = (row + col) % 2 != 0;
+        String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
+        System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
     }
 
     public String printWhiteBoard(String... params) {
