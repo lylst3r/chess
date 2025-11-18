@@ -59,8 +59,6 @@ public class ServerFacade {
             throw new ResponseException(ResponseException.Code.Unauthorized,
                     "Error: Unauthorized");
         }
-
-        authToken = null;
     }
 
     public GameData[] listGames(String authToken) throws ResponseException {
@@ -196,16 +194,6 @@ public class ServerFacade {
             throw new ResponseException(ResponseException.Code.ServerError, "Failed to connect to server");
         }
     }
-
-    private final Gson gsonIgnoreGame = new GsonBuilder()
-            .addSerializationExclusionStrategy(new ExclusionStrategy() {
-                @Override
-                public boolean shouldSkipField(FieldAttributes f) {
-                    return f.getName().equals("game");
-                }
-                @Override
-                public boolean shouldSkipClass(Class<?> clazz) { return false; }
-            }).create();
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
         int status = response.statusCode();
