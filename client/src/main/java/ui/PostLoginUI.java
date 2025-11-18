@@ -109,17 +109,8 @@ public class PostLoginUI {
         StringBuilder sb = new StringBuilder("Games:\n");
         for (int i = 0; i < games.length; i++) {
             GameData g = games[i];
-            String whiteUser = "No player";
-            String blackUser = "No player";
 
-            if (g.whiteUsername() != null) {
-                whiteUser = g.whiteUsername();
-            }
-            if (g.blackUsername() != null) {
-                blackUser = g.blackUsername();
-            }
-
-            sb.append(String.format("%d) %s --> %s/%s \n", i + 1, g.gameName(), whiteUser, blackUser));
+            sb.append(String.format("%d) %s\n", i + 1, g.gameName()));
         }
 
         return sb.toString();
