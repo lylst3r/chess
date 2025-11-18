@@ -112,41 +112,54 @@ public class GameplayUI {
     }
 
 
-    public String printWhiteBoard(String... params) {
+    private String printBoard(boolean isWhitePerspective) {
         String[][] board = initialBoard();
 
-        System.out.println("   a   b   c  d   e  f   g   h");
+        String[] columns = isWhitePerspective ?
+                new String[]{"a","b","c","d","e","f","g","h"} :
+                new String[]{"h","g","f","e","d","c","b","a"};
 
-        for (int row = 7; row >= 0; row--) {
-            System.out.print((row + 1) + " ");
-            for (int col = 0; col < 8; col++) {
-                boolean light = (row + col) % 2 != 0;
-                String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
-                System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
+        System.out.print("  ");
+        for (String c : columns) System.out.print(c + "   ");
+        System.out.println();
+
+        if (isWhitePerspective) {
+            for (int row = 7; row >= 0; row--) {
+                System.out.print((row + 1) + " ");
+                for (int col = 0; col < 8; col++) {
+                    boolean light = (row + col) % 2 != 0;
+                    String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
+                    System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
+                }
+                System.out.println(" " + (row + 1));
             }
-            System.out.println(" " + (row + 1));
+        } else {
+            for (int row = 0; row < 8; row++) {
+                System.out.print((row + 1) + " ");
+                for (int col = 7; col >= 0; col--) {
+                    boolean light = (row + col) % 2 != 0;
+                    String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
+                    System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
+                }
+                System.out.println(" " + (row + 1));
+            }
         }
-        System.out.println("   a   b   c  d   e  f   g   h\n");
+
+        System.out.print("  ");
+        for (String c : columns) System.out.print(c + "   ");
+        System.out.println("\n");
+
         return "";
+    }
+
+    public String printWhiteBoard(String... params) {
+        return printBoard(true);
     }
 
     public String printBlackBoard(String... params) {
-        String[][] board = initialBoard();
-
-        System.out.println("   h   g   f  e   d  c   b   a");
-
-        for (int row = 0; row < 8; row++) {
-            System.out.print((row + 1) + " ");
-            for (int col = 7; col >= 0; col--) {
-                boolean light = (row + col) % 2 != 0;
-                String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
-                System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
-            }
-            System.out.println(" " + (row + 1));
-        }
-        System.out.println("   h   g   f  e   d  c   b   a\n");
-        return "";
+        return printBoard(false);
     }
+
 
     public String reprintBoard() throws ResponseException {
         if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {

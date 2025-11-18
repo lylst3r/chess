@@ -36,7 +36,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void register_positive() throws Exception {
+    public void registerPositive() throws Exception {
         AuthData auth = facade.register(new UserData("u1", "pass", "email"));
         assertNotNull(auth);
         assertEquals("u1", auth.username());
@@ -44,14 +44,14 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void register_negative_duplicateUser() throws Exception {
+    public void registerNegativeDuplicateUser() throws Exception {
         facade.register(new UserData("u1", "pass", "email"));
         assertThrows(ResponseException.class, () ->
                 facade.register(new UserData("u1", "pass", "email")));
     }
 
     @Test
-    public void login_positive() throws Exception {
+    public void loginPositive() throws Exception {
         facade.register(new UserData("u1", "pass", "email"));
         AuthData auth = facade.login("u1", "pass");
         assertNotNull(auth);
@@ -59,26 +59,26 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void login_negative_wrongPassword() throws Exception {
+    public void loginNegativeWrongPassword() throws Exception {
         facade.register(new UserData("u1", "pass", "email"));
         assertThrows(ResponseException.class, () ->
                 facade.login("u1", "BADPASS"));
     }
 
     @Test
-    public void logout_positive() throws Exception {
+    public void logoutPositive() throws Exception {
         AuthData auth = facade.register(new UserData("u1", "pass", "email"));
         assertDoesNotThrow(() -> facade.logout(auth.authToken()));
     }
 
     @Test
-    public void logout_negative_invalidToken() throws Exception {
+    public void logoutNegativeInvalidToken() throws Exception {
         assertThrows(ResponseException.class, () ->
                 facade.logout(null));
     }
 
     @Test
-    public void createGame_positive() throws Exception {
+    public void createGamePositive() throws Exception {
         AuthData auth = facade.register(new UserData("u1", "pass", "email"));
 
         GameData game = facade.createGame(auth.authToken(), "Chess");
@@ -88,13 +88,13 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void createGame_negative_invalidAuth() {
+    public void createGameNegativeInvalidAuth() {
         assertThrows(ResponseException.class, () ->
                 facade.createGame("BAD_TOKEN", "Chess"));
     }
 
     @Test
-    public void listGames_positive() throws Exception {
+    public void listGamesPositive() throws Exception {
         AuthData auth = facade.register(new UserData("u1", "pass", "email"));
         facade.createGame(auth.authToken(), "Game A");
         facade.createGame(auth.authToken(), "Game B");
@@ -108,13 +108,13 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void listGames_negative_invalidAuth() {
+    public void listGamesNegativeInvalidAuth() {
         assertThrows(ResponseException.class, () ->
                 facade.listGames("BAD_TOKEN"));
     }
 
     @Test
-    public void joinGame_positive() throws Exception {
+    public void joinGamePositive() throws Exception {
         AuthData auth = facade.register(new UserData("u1", "pass", "email"));
         GameData created = facade.createGame(auth.authToken(), "Chess");
 
@@ -125,14 +125,14 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void joinGame_negative_invalidGameID() throws Exception {
+    public void joinGameNegativeInvalidGameID() throws Exception {
         AuthData auth = facade.register(new UserData("u1", "pass", "email"));
         assertThrows(ResponseException.class, () ->
                 facade.joinGame(auth.authToken(), 9999, "LIGHT"));
     }
 
     @Test
-    public void clear_positive() throws Exception {
+    public void clearPositive() throws Exception {
         facade.register(new UserData("u1", "pass", "email"));
         facade.clear();
         assertThrows(ResponseException.class, () ->
@@ -140,7 +140,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void clear_negative_remoteCallFails() {
+    public void clearNegativeRemoteCallFails() {
         ServerFacade badFacade = new ServerFacade("http://localhost:9999");
         assertThrows(ResponseException.class, badFacade::clear);
     }
