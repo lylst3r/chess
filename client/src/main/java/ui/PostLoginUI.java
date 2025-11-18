@@ -216,11 +216,4 @@ public class PostLoginUI {
                 - help                           get possible commands
             """;
     }
-
-    private void assertLoggedIn() throws ResponseException {
-        State state = uiHelper.getState();
-        if (state == State.LOGGEDOUT) {
-            throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
-        }
-    }
 }

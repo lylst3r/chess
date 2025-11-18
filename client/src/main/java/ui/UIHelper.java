@@ -10,7 +10,6 @@ public class UIHelper {
     private State state = State.LOGGEDOUT;
     private AuthData auth;
     private GameData game;
-    private String gameName;
     private ArrayList<GameTracker> games;
     private String color;
 
@@ -32,25 +31,8 @@ public class UIHelper {
         this.auth = auth;
     }
 
-    public GameData getGame() {
-        return game;
-    }
-
     public void setGame(GameData game) {
         this.game = game;
-    }
-
-    public String getGameName() {
-        return gameName;
-    }
-
-    public void setGameName(String gameName) {
-        this.gameName = gameName;
-    }
-
-    public void addGame(int gameID, String gameName) throws ResponseException {
-        GameTracker game = new GameTracker(gameID, gameName);
-        games.add(game);
     }
 
     public String getGameName(int gameID) {

@@ -176,13 +176,4 @@ public class GameplayUI {
                 - help       get possible commands
             """;
     }
-
-    private void assertLoggedIn() throws ResponseException {
-        State state = uiHelper.getState();
-        if (state == State.LOGGEDOUT) {
-            throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
-        } else if  (state == State.LOGGEDIN) {
-            throw new ResponseException(ResponseException.Code.ClientError, "You must join a game");
-        }
-    }
 }

@@ -220,7 +220,9 @@ public class ServerFacade {
             throw new ResponseException(code, message);
         }
 
-        if (responseClass == null) return null;
+        if (responseClass == null) {
+            return null;
+        }
         return gson.fromJson(body, responseClass);
     }
 }
