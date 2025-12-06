@@ -117,7 +117,18 @@ public class PostLoginUI {
         for (int i = 0; i < games.length; i++) {
             GameData g = games[i];
 
-            sb.append(String.format("%d) %s\n", i + 1, g.gameName()));
+            String light = "No player";
+            String dark = "No player";
+
+            if (g.whiteUsername() != null) {
+                light = g.whiteUsername();
+            }
+
+            if (g.blackUsername() != null) {
+                dark = g.blackUsername();
+            }
+
+            sb.append(String.format("%d) %s  |  Light:%s / Dark:%s\n", i + 1, g.gameName(), light, dark));
         }
 
         return sb.toString();
