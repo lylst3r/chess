@@ -18,6 +18,7 @@ import server.service.result.CreateGameResult;
 import server.service.result.ListGamesResult;
 import server.service.result.LoginResult;
 import server.service.result.RegisterResult;
+import server.websocket.WebSocketHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class Server {
     private final Javalin javalin;
     private final Handler handler;
     private final Gson gson;
+    private final WebSocketHandler webSocketHandler;
     //private static final DataAccessDAO dao = initDAO();
 
     public Server() {
@@ -41,6 +43,7 @@ public class Server {
             throw new RuntimeException("Cannot start server without SQL database", e);
         }
 
+        webSocketHandler = new WebSocketHandler(dao);
         Service service = new Service(dao);
         handler  = new Handler(service);
         gson = new Gson();
@@ -56,8 +59,12 @@ public class Server {
             .get("/game", this::listGames)
             .post("/game", this::createGame)
             .put("/game", this::joinGame)
-            .exception(ResponseException.class, this::exceptionHandler);
-
+            .exception(ResponseException.class, this::exceptionHandler)
+            .ws("/ws", ws -> {
+                ws.onConnect(webSocketHandler);
+                ws.onMessage(webSocketHandler);
+                ws.onClose(webSocketHandler);
+            });
     }
 
     public int run(int desiredPort) {

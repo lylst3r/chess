@@ -2,6 +2,7 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessDAO;
 import exception.ResponseException;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
@@ -11,15 +12,22 @@ import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 import java.io.IOException;
+import dataaccess.AuthDAO;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
+    private final Gson gson = new Gson();
+    private final DataAccessDAO dao;
 
-    public  WebSocketHandler() {}
+    public  WebSocketHandler(DataAccessDAO dao) {
+        this.dao = dao;
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -48,44 +56,62 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connect(String authToken, int gameID, Session session) throws IOException {
-        connections.add(gameID, session);
-        var message = String.format("Connected to game: %s", authToken);
-        var notification = new NotificationMessage(message);
-        connections.broadcast(gameID, session, notification);
+        try {
+            var auth = dao.getAuthDAO().getAuth(authToken);
+            if (auth == null) {
+                sendError(session, "Invalid auth token");
+                return;
+            }
+
+            String username = auth.username();
+
+            var game = dao.getGameDAO().getGame(gameID);
+            if (game == null) {
+                sendError(session, "Game not found");
+                return;
+            }
+
+            connections.add(gameID, session);
+
+            var loadGame = new LoadGameMessage(dao.getGameDAO().getGame(gameID));
+            session.getRemote().sendString(gson.toJson(loadGame));
+
+            var notification = new NotificationMessage(username + " joined the game");
+            connections.broadcast(gameID, session, notification);
+
+        } catch (Exception e) {
+            sendError(session, "Failed to connect");
+        }
     }
 
     private void leave(String authToken, int gameID, Session session) throws IOException {
-
-    }
-
-    private void makeMove(UserGameCommand action, Session session) throws IOException {
-
-    }
-
-    private void resign(String authToken, int gameID, Session session) throws IOException {
-
-    }
-
-    /*private void enter(String visitorName, Session session) throws IOException {
-        connections.add(session);
-        var message = String.format("%s is in the shop", visitorName);
-        var notification = new ServerMessage(ServerMessage.CommandType.ARRIVAL, message);
-        connections.broadcast(session, notification);
-    }
-
-    private void exit(String visitorName, Session session) throws IOException {
-        var message = String.format("%s left the shop", visitorName);
-        var notification = new ServerMessage(ServerMessage.Type.DEPARTURE, message);
-        connections.broadcast(session, notification);
+        var message = String.format("Leaving game: %s", authToken);
+        var notification = new NotificationMessage(message);
+        connections.broadcast(gameID, session, notification);
         connections.remove(session);
     }
 
-    public void makeNoise(String petName, String sound) throws ResponseException {
-        try {
-            var message = String.format("%s says %s", petName, sound);
-            var notification = new Notification(Notification.Type.NOISE, message);
-            connections.broadcast(null, notification);
-        } catch (Exception ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
-        }*/
+    private void makeMove(UserGameCommand action, Session session) throws IOException {
+        int gameID = action.getGameID();
+        String authToken = action.getAuthToken();
+
+        var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        connections.broadcast(gameID, session, moveMessage);
+
+        if (session.isOpen()) {
+            session.getRemote().sendString(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION)));
+        }
+    }
+
+    private void resign(String authToken, int gameID, Session session) throws IOException {
+        var message = String.format("%s resigned", authToken);
+        var notification = new NotificationMessage(message);
+        connections.broadcast(gameID, session, notification);
+        connections.remove(session);
+    }
+
+    private void sendError(Session session, String errorMessage) throws IOException {
+        var error = new ErrorMessage(errorMessage);
+        session.getRemote().sendString(gson.toJson(error));
+    }
 }
