@@ -404,6 +404,27 @@ public class ChessGame {
         return null;
     }
 
+    public boolean isValidMove(ChessMove move) {
+        if (move == null) {
+            return false;
+        }
+
+        ChessPosition start = move.getStartPosition();
+        ChessPiece piece = mainBoard.getPiece(start);
+
+        if (piece == null) {
+            return false;
+        }
+
+        if (piece.getTeamColor() != teamTurn) {
+            return false;
+        }
+
+        Collection<ChessMove> legalMoves = validMoves(start);
+
+        return legalMoves.contains(move);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

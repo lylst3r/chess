@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessDAO;
@@ -10,7 +11,9 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -38,7 +41,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     @Override
     public void handleMessage(WsMessageContext ctx) {
         try {
-            UserGameCommand action = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+            MakeMoveCommand action = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
             switch (action.getCommandType()) {
                 case CONNECT -> connect(action.getAuthToken(), action.getGameID(), (Session) ctx.session);
                 case MAKE_MOVE -> makeMove(action, ctx.session);
@@ -91,15 +94,63 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.remove(session);
     }
 
-    private void makeMove(UserGameCommand action, Session session) throws IOException {
-        int gameID = action.getGameID();
+    private void makeMove(MakeMoveCommand action, Session session) throws IOException {
         String authToken = action.getAuthToken();
+        int gameID = action.getGameID();
 
-        var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        connections.broadcast(gameID, session, moveMessage);
+        try {
+            var auth = dao.getAuthDAO().getAuth(authToken);
+            if (auth == null) {
+                sendError(session, "Invalid auth token");
+                return;
+            }
+            String username = auth.username();
 
-        if (session.isOpen()) {
-            session.getRemote().sendString(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION)));
+            var game = dao.getGameDAO().getGame(gameID);
+            if (game == null) {
+                sendError(session, "Invalid game ID");
+                return;
+            }
+
+            if (!username.equals(game.whiteUsername()) && !username.equals(game.blackUsername())) {
+                sendError(session, "You are not a player in this game");
+                return;
+            }
+
+            var chessGame = game.game();
+            var move = action.getMove();
+
+            if (!chessGame.isValidMove(move)) {
+                sendError(session, "Illegal move");
+                return;
+            }
+
+            boolean isWhite = username.equals(game.whiteUsername());
+            boolean isBlack = username.equals(game.blackUsername());
+
+            if ((chessGame.getTeamTurn() == ChessGame.TeamColor.WHITE && !isWhite) ||
+                    (chessGame.getTeamTurn() == ChessGame.TeamColor.BLACK && !isBlack)) {
+                sendError(session, "Not your turn");
+                return;
+            }
+
+            chessGame.makeMove(move);
+
+            GameData newGame = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), chessGame);
+            dao.getGameDAO().updateGame(gameID, newGame);
+
+            var loadGame = new LoadGameMessage(game);
+            session.getRemote().sendString(gson.toJson(loadGame));
+
+            var note = new NotificationMessage(username + " made a move");
+            connections.broadcast(gameID, session, note);
+
+            var loadGameBroadcast = new LoadGameMessage(game);
+            connections.broadcast(gameID, session, loadGameBroadcast);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendError(session, "Failed to make move");
         }
     }
 
