@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessPosition;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
@@ -31,6 +32,10 @@ public class UIHelper {
         this.auth = auth;
     }
 
+    public String getAuthToken() {
+        return auth.authToken();
+    }
+
     public void setGame(GameData game) {
         this.game = game;
     }
@@ -44,6 +49,10 @@ public class UIHelper {
         return "No game with ID: " + gameID;
     }
 
+    public int getGameID() {
+        return game.gameID();
+    }
+
     public String getColor() {
         if (color == null) {
             return "";
@@ -53,5 +62,23 @@ public class UIHelper {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public ChessPosition toPosition(String coord) throws ResponseException {
+        if (coord == null || coord.length() != 2) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Invalid coordinate: " + coord);
+        }
+
+        char file = coord.charAt(0); // a–h
+        char rank = coord.charAt(1); // 1–8
+
+        int col = file - 'a' + 1;  // convert a→1, b→2, ..., h→8
+        int row = rank - '0';      // convert '1'→1 …
+
+        if (col < 1 || col > 8 || row < 1 || row > 8) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Coordinate out of range: " + coord);
+        }
+
+        return new ChessPosition(row, col);
     }
 }

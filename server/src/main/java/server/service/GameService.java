@@ -64,6 +64,7 @@ public class GameService {
             if (game == null) {
                 throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
             }
+
             String gameName = game.gameName();
             if (gameName == null || gameName.isEmpty()) {
                 throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty");
@@ -82,11 +83,14 @@ public class GameService {
 
             }
 
-            if (playerColor.equals("WHITE") && game.whiteUsername() != null) {
-                throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
-            }
-            else if (playerColor.equals("BLACK") && game.blackUsername() != null) {
-                throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
+            if (playerColor.equals("WHITE")) {
+                if (game.whiteUsername() != null && !game.whiteUsername().equals(username)) {
+                    throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
+                }
+            } else {
+                if (game.blackUsername() != null && !game.blackUsername().equals(username)) {
+                    throw new ResponseException(ResponseException.Code.Conflict, "Error: color taken");
+                }
             }
 
             GameData newGame;
@@ -102,4 +106,42 @@ public class GameService {
             throw new  ResponseException(ResponseException.Code.ServerError, "Error: Internal Server Error " + e.getMessage());
         }
     }
+
+    public void leaveGame(int gameID, String username) throws ResponseException, DataAccessException {
+        try {
+            GameData game = dao.getGameDAO().getGame(gameID);
+
+            if (game == null) {
+                throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
+            }
+
+            String white = game.whiteUsername();
+            String black = game.blackUsername();
+
+            // Determine if the user is in the game
+            boolean isWhite = username.equals(white);
+            boolean isBlack = username.equals(black);
+
+            if (!isWhite && !isBlack) {
+                return;
+            }
+
+            GameData newGame;
+
+            if (isWhite) {
+                newGame = new GameData(game.gameID(), null, game.blackUsername(),
+                        game.gameName(), game.game());
+            } else {
+                newGame = new GameData(game.gameID(), game.whiteUsername(), null,
+                        game.gameName(), game.game());
+            }
+
+            dao.getGameDAO().updateGame(gameID, newGame);
+
+        } catch (DataAccessException e) {
+            throw new ResponseException(ResponseException.Code.ServerError,
+                    "Error: Internal Server Error " + e.getMessage());
+        }
+    }
+
 }

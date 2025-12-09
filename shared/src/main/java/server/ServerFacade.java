@@ -225,4 +225,8 @@ public class ServerFacade {
         }
         return gson.fromJson(body, responseClass);
     }
+
+    public String getServerUrl() {
+        return serverUrl;
+    }
 }

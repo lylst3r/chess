@@ -1,16 +1,28 @@
 package ui;
 
+import chess.ChessMove;
+import com.google.gson.Gson;
 import exception.ResponseException;
 import server.ServerFacade;
+import websocket.NotificationHandler;
+import websocket.WebSocketFacade;
+import websocket.commands.ConnectCommand;
+import websocket.commands.LeaveCommand;
+import websocket.commands.MakeMoveCommand;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class GameplayUI {
+public class GameplayUI implements NotificationHandler {
     private final ServerFacade server;
     private final UIHelper uiHelper;
+    private WebSocketFacade ws;
+
 
     public GameplayUI(String serverUrl, UIHelper uiHelper) {
         server = new ServerFacade(serverUrl);
@@ -19,6 +31,18 @@ public class GameplayUI {
 
     public void run() {
         //System.out.println(uiHelper.getGame().gameName());
+        try {
+            ws = new WebSocketFacade(server.getServerUrl(), this);
+
+            ws.send(new ConnectCommand(
+                    uiHelper.getAuthToken(),
+                    uiHelper.getGameID()
+            ));
+        } catch (Exception ex) {
+            System.out.println("WebSocket failed: " + ex.getMessage());
+            return;
+        }
+
         if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {
             printWhiteBoard();
         }
@@ -63,7 +87,10 @@ public class GameplayUI {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
+                case "make-move" -> makeMove();
+                case "highlight-moves" -> highlightMoves();
                 case "reprint" -> reprintBoard();
+                case "resign" -> resign();
                 case "leave" -> leave(params);
                 case "quit" ->  quit(params);
                 default -> help();
@@ -109,6 +136,16 @@ public class GameplayUI {
             }
         }
         return b;
+    }
+
+    @Override
+    public void notify(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME -> updateBoard(((LoadGameMessage) message).toString());
+            case ERROR -> System.out.println("Server error: " + message.getErrorMessage());
+            case NOTIFICATION -> System.out.println(((NotificationMessage) message).getMessage());
+            default -> System.out.println("Unknown message: " + message);
+        }
     }
 
 
@@ -158,6 +195,17 @@ public class GameplayUI {
         System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
     }
 
+    public void updateBoard(String json) {
+        try {
+            LoadGameMessage m = new Gson().fromJson(json, LoadGameMessage.class);
+            uiHelper.setGame(m.getGame());
+            reprintBoard();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+
     public String printWhiteBoard(String... params) {
         return printBoard(true);
     }
@@ -167,6 +215,30 @@ public class GameplayUI {
     }
 
     public String makeMove() {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter move (e.g. e2 e4): ");
+        String moveText = sc.nextLine();
+
+        try {
+            String[] parts = moveText.split(" ");
+            if (parts.length != 2) return "Invalid move format";
+
+            var from = uiHelper.toPosition(parts[0]);
+            var to   = uiHelper.toPosition(parts[1]);
+
+            var move = new ChessMove(from, to, null);
+
+            ws.send(new MakeMoveCommand(uiHelper.getAuthToken(),
+                    uiHelper.getGameID(),
+                    move));
+
+            return "Move sent.";
+        } catch (Exception e) {
+            return "Invalid move.";
+        }
+    }
+
+    public String resign() {
         return null;
     }
 
@@ -181,10 +253,19 @@ public class GameplayUI {
         throw new ResponseException(ResponseException.Code.ServerError, "Couldn't reprint board.");
     }
 
+    public String highlightMoves() throws ResponseException {
+        return null;
+    }
+
     public String leave(String... params) {
-        uiHelper.setState(State.LOGGEDIN);
-        System.out.println("Leaving game...");
-        return "leave";
+        try {
+            ws.send(new LeaveCommand(uiHelper.getAuthToken(), uiHelper.getGameID()));
+            uiHelper.setState(State.LOGGEDIN);
+            System.out.println("Leaving game...");
+            return "leave";
+        } catch (ResponseException e) {
+            return "Error leaving game: " + e.getMessage();
+        }
     }
 
     public String quit(String... params) throws ResponseException {
@@ -193,10 +274,13 @@ public class GameplayUI {
 
     public String help() {
             return """
-                - reprint    reprint board
-                - leave      leave game
-                - quit       exit chess
-                - help       get possible commands
+                - make-move         make a move
+                - highlight-moves   shows which moves you can make
+                - reprint           reprint board
+                - resign            lose the game
+                - leave             leave game
+                - quit              exit chess
+                - help              get possible commands
             """;
     }
 }
