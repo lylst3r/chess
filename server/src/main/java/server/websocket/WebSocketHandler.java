@@ -88,10 +88,48 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void leave(String authToken, int gameID, Session session) throws IOException {
-        var message = String.format("Leaving game: %s", authToken);
-        var notification = new NotificationMessage(message);
-        connections.broadcast(gameID, session, notification);
-        connections.remove(session);
+        try {
+            var auth = dao.getAuthDAO().getAuth(authToken);
+            if (auth == null) {
+                sendError(session, "Invalid auth token");
+                return;
+            }
+
+            var game = dao.getGameDAO().getGame(gameID);
+            if (game == null) {
+                sendError(session, "Game not found");
+                return;
+            }
+
+            String username = auth.username();
+
+            String newWhite = game.whiteUsername();
+            String newBlack = game.blackUsername();
+
+            if (username.equals(newWhite)) {
+                newWhite = null;
+            } else if (username.equals(newBlack)) {
+                newBlack = null;
+            }
+
+            GameData updated = new GameData(
+                    gameID,
+                    newWhite,
+                    newBlack,
+                    game.gameName(),
+                    game.game()
+            );
+
+            dao.getGameDAO().updateGame(gameID, updated);
+
+            connections.remove(session);
+
+            var note = new NotificationMessage(username + " left the game");
+            connections.broadcast(gameID, session, note);
+
+        } catch (Exception e) {
+            sendError(session, "Failed to leave");
+        }
     }
 
     private void makeMove(MakeMoveCommand action, Session session) throws IOException {
@@ -112,12 +150,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 return;
             }
 
+            var chessGame = game.game();
+
+            if (chessGame.isGameOver()) {
+                sendError(session, "Game is already over");
+                return;
+            }
+
             if (!username.equals(game.whiteUsername()) && !username.equals(game.blackUsername())) {
                 sendError(session, "You are not a player in this game");
                 return;
             }
 
-            var chessGame = game.game();
             var move = action.getMove();
 
             if (!chessGame.isValidMove(move)) {
@@ -155,10 +199,60 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void resign(String authToken, int gameID, Session session) throws IOException {
-        var message = String.format("%s resigned", authToken);
-        var notification = new NotificationMessage(message);
-        connections.broadcast(gameID, session, notification);
-        connections.remove(session);
+        try {
+            var auth = dao.getAuthDAO().getAuth(authToken);
+            if (auth == null) {
+                sendError(session, "Invalid auth token");
+                return;
+            }
+            String username = auth.username();
+
+            var game = dao.getGameDAO().getGame(gameID);
+            if (game == null) {
+                sendError(session, "Invalid game ID");
+                return;
+            }
+
+            boolean isWhite = username.equals(game.whiteUsername());
+            boolean isBlack = username.equals(game.blackUsername());
+
+            if (!isWhite && !isBlack) {
+                sendError(session, "Only players may resign");
+                return;
+            }
+
+            if (game.game().isGameOver()) {
+                sendError(session, "Game already over");
+                return;
+            }
+
+            var chessGame = game.game();
+            chessGame.resign(isWhite ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+
+            GameData updated = new GameData(gameID,
+                    game.whiteUsername(),
+                    game.blackUsername(),
+                    game.gameName(),
+                    chessGame);
+
+            dao.getGameDAO().updateGame(gameID, updated);
+
+            session.getRemote().sendString(gson.toJson(
+                    new NotificationMessage(username + " resigned")));
+
+            String winner = isWhite ? game.blackUsername() : game.whiteUsername();
+
+            String combined = username + " resigned, " + winner + " wins by resignation";
+
+            connections.broadcast(gameID, session,
+                    new NotificationMessage(combined));
+
+
+            connections.remove(session);
+
+        } catch (Exception e) {
+            sendError(session, "Failed to resign");
+        }
     }
 
     private void sendError(Session session, String errorMessage) throws IOException {

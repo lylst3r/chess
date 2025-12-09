@@ -166,6 +166,10 @@ public class GameplayUI {
         return printBoard(false);
     }
 
+    public String makeMove() {
+        return null;
+    }
+
 
     public String reprintBoard() throws ResponseException {
         if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {

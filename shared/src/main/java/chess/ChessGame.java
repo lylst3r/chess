@@ -15,6 +15,11 @@ public class ChessGame {
     private TeamColor teamTurn = TeamColor.WHITE;
     private final ChessBoard mainBoard = new ChessBoard();
     private ChessPosition enPassant = null;
+    private boolean gameOver = false;
+    private TeamColor winner = null;
+    private String whitePlayer;
+    private String blackPlayer;
+
 
     public ChessGame() {
         mainBoard.resetBoard();
@@ -423,6 +428,37 @@ public class ChessGame {
         Collection<ChessMove> legalMoves = validMoves(start);
 
         return legalMoves.contains(move);
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void resign(TeamColor color) {
+        if (gameOver) return;  // already finished
+
+        gameOver = true;
+        winner = (color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    }
+
+    public TeamColor getWinner() {
+        return winner;
+    }
+
+    public String getWhiteUsername() {
+        return whitePlayer;
+    }
+
+    public String getBlackUsername() {
+        return blackPlayer;
+    }
+
+    public void setWhiteUsername(String whitePlayer) {
+        this.whitePlayer = whitePlayer;
+    }
+
+    public void setBlackUsername(String blackPlayer) {
+        this.blackPlayer = blackPlayer;
     }
 
     @Override
