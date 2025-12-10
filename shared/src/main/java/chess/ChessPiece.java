@@ -66,6 +66,18 @@ public class ChessPiece {
         return PieceMovesCalculator.pieceMoves(board, myPosition);
     }
 
+    public String getUnicodeSymbol() {
+        switch (type) {
+            case KING:   return (pieceColor == ChessGame.TeamColor.WHITE) ? "♔" : "♚";
+            case QUEEN:  return (pieceColor == ChessGame.TeamColor.WHITE) ? "♕" : "♛";
+            case ROOK:   return (pieceColor == ChessGame.TeamColor.WHITE) ? "♖" : "♜";
+            case BISHOP: return (pieceColor == ChessGame.TeamColor.WHITE) ? "♗" : "♝";
+            case KNIGHT: return (pieceColor == ChessGame.TeamColor.WHITE) ? "♘" : "♞";
+            case PAWN:   return (pieceColor == ChessGame.TeamColor.WHITE) ? "♙" : "♟";
+            default:     return " ";
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

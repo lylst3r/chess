@@ -41,6 +41,13 @@ public class ChessGame {
         this.teamTurn = team;
     }
 
+    public ChessPiece getPieceAt(int r, int c) {
+        if (r < 0 || r > 7 || c < 0 || c > 7) {
+            return null;
+        }
+        return mainBoard.getPiece(new ChessPosition(r, c));
+    }
+
     /**
      * Enum identifying the 2 possible teams in a chess game
      */

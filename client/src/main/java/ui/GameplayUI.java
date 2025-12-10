@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
@@ -43,12 +44,18 @@ public class GameplayUI implements NotificationHandler {
             return;
         }
 
-        if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {
+        try {
+            reprintBoard();
+        } catch (ResponseException ex) {
+            System.out.println("couldn't print board");
+        }
+
+        /*if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {
             printWhiteBoard();
         }
         if (uiHelper.getColor().equals("DARK") ||  uiHelper.getColor().equals("dark")) {
             printBlackBoard();
-        }
+        }*/
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -141,7 +148,20 @@ public class GameplayUI implements NotificationHandler {
     @Override
     public void notify(ServerMessage message) {
         switch (message.getServerMessageType()) {
-            case LOAD_GAME -> updateBoard(((LoadGameMessage) message).toString());
+            case LOAD_GAME -> {
+                LoadGameMessage m = (LoadGameMessage) message;
+                uiHelper.setGame(m.getGame());
+
+                if (uiHelper.getColor() == null || uiHelper.getColor().isEmpty()) {
+                    uiHelper.setColor(uiHelper.getGame().whiteUsername().equals(uiHelper.getAuth().username()) ? "LIGHT" : "DARK");
+                }
+
+                try {
+                    reprintBoard();
+                } catch (ResponseException e) {
+                    System.out.println("Error printing board: " + e.getMessage());
+                }
+            }
             case ERROR -> System.out.println("Server error: " + message.getErrorMessage());
             case NOTIFICATION -> System.out.println(((NotificationMessage) message).getMessage());
             default -> System.out.println("Unknown message: " + message);
@@ -151,6 +171,7 @@ public class GameplayUI implements NotificationHandler {
 
     private String printBoard(boolean isWhitePerspective) {
         String[][] board = initialBoard();
+        //String[][] board = getBoardFromGame();
 
         String[] columns = isWhitePerspective ?
                 new String[]{"a","b","c","d","e","f","g","h"} :
@@ -187,6 +208,29 @@ public class GameplayUI implements NotificationHandler {
         System.out.println("\n");
 
         return "";
+    }
+
+    private String[][] getBoardFromGame() {
+        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null) {
+            String[][] b = new String[8][8];
+            for (int r = 0; r < 8; r++) {
+                for (int c = 0; c < 8; c++) {
+                    b[r][c] = EscapeSequences.EMPTY;
+                }
+            }
+            return b;
+        }
+
+        ChessGame game = uiHelper.getGame().game();
+        String[][] b = new String[8][8];
+
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                var piece = game.getPieceAt(r + 1, c + 1); // ChessGame uses 1–8 indexing
+                b[r][c] = (piece == null) ? EscapeSequences.EMPTY : piece.getUnicodeSymbol();
+            }
+        }
+        return b;
     }
 
     public void printBoardHelper(int row, int col, String[][] board) {

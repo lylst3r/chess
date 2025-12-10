@@ -36,6 +36,10 @@ public class UIHelper {
         return auth.authToken();
     }
 
+    public GameData getGame() {
+        return game;
+    }
+
     public void setGame(GameData game) {
         this.game = game;
     }
