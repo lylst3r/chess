@@ -41,14 +41,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     @Override
     public void handleMessage(WsMessageContext ctx) {
         try {
-            MakeMoveCommand action = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
-            switch (action.getCommandType()) {
-                case CONNECT -> connect(action.getAuthToken(), action.getGameID(), (Session) ctx.session);
-                case MAKE_MOVE -> makeMove(action, ctx.session);
-                case LEAVE -> leave(action.getAuthToken(), action.getGameID(), ctx.session);
-                case RESIGN -> resign(action.getAuthToken(), action.getGameID(), ctx.session);
+            var root = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+
+            switch (root.getCommandType()) {
+                case CONNECT -> {
+                    UserGameCommand cmd = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+                    connect(cmd.getAuthToken(), cmd.getGameID(), (Session) ctx.session);
+                }
+                case LEAVE -> {
+                    UserGameCommand cmd = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+                    leave(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
+                }
+                case RESIGN -> {
+                    UserGameCommand cmd = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+                    resign(cmd.getAuthToken(), cmd.getGameID(), ctx.session);
+                }
+                case MAKE_MOVE -> {
+                    MakeMoveCommand cmd = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
+                    makeMove(cmd, ctx.session);
+                }
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -183,13 +196,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             GameData newGame = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), chessGame);
             dao.getGameDAO().updateGame(gameID, newGame);
 
-            var loadGame = new LoadGameMessage(game);
+            var loadGame = new LoadGameMessage(newGame);
             session.getRemote().sendString(gson.toJson(loadGame));
 
             var note = new NotificationMessage(username + " made a move");
             connections.broadcast(gameID, session, note);
 
-            var loadGameBroadcast = new LoadGameMessage(game);
+            var loadGameBroadcast = new LoadGameMessage(newGame);
             connections.broadcast(gameID, session, loadGameBroadcast);
 
         } catch (Exception e) {
@@ -236,6 +249,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     chessGame);
 
             dao.getGameDAO().updateGame(gameID, updated);
+
+            var loadGame = new LoadGameMessage(updated);
 
             session.getRemote().sendString(gson.toJson(
                     new NotificationMessage(username + " resigned")));

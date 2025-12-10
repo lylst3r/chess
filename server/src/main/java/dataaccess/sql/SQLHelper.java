@@ -28,7 +28,7 @@ public class SQLHelper {
               `whiteUsername` varchar(255) DEFAULT NULL,
               `blackUsername` varchar(255) DEFAULT NULL,
               `gameName` varchar(255) NOT NULL,
-              `game` JSON DEFAULT NULL,
+              `game` TEXT DEFAULT NULL,
               PRIMARY KEY (`gameID`),
               INDEX(whiteUsername),
               INDEX(blackUsername)

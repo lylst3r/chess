@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.*;
 import exception.ResponseException;
 import model.AuthData;
@@ -81,13 +82,13 @@ public class ServerFacade {
 
         for (int i = 0; i < list.size(); i++) {
             Map<String, Object> g = list.get(i);
+            ChessGame game = gson.fromJson(response.body(), ChessGame.class);
             result[i] = new GameData(
                     ((Number) g.get("gameID")).intValue(),
                     (String) g.get("whiteUsername"),
                     (String) g.get("blackUsername"),
                     (String) g.get("gameName"),
-                    null
-            );
+                    game);
         }
 
         return result;
@@ -150,13 +151,13 @@ public class ServerFacade {
         for (var g : list) {
             int id = ((Number) g.get("gameID")).intValue();
             if (id == gameID) {
+                ChessGame game = gson.fromJson(response.body(), ChessGame.class);
                 return new GameData(
                         id,
                         (String) g.get("whiteUsername"),
                         (String) g.get("blackUsername"),
                         (String) g.get("gameName"),
-                        null
-                );
+                        game);
             }
         }
 

@@ -171,41 +171,42 @@ public class GameplayUI implements NotificationHandler {
 
 
     private String printBoard(boolean isWhitePerspective) {
-        String[][] board = initialBoard();
-        //String[][] board = getBoardFromGame();
+        //String[][] board = initialBoard();
+        String[][] board = getBoardFromGame();
 
-        String[] columns = isWhitePerspective ?
+        // Column labels
+        String[] cols = isWhitePerspective ?
                 new String[]{"a","b","c","d","e","f","g","h"} :
                 new String[]{"h","g","f","e","d","c","b","a"};
 
-        System.out.print("  ");
-        for (String c : columns){
-            System.out.print(c + "   ");
-        }
+        System.out.print("   ");
+        for (String c : cols) System.out.print(" " + c + "  ");
         System.out.println();
 
         if (isWhitePerspective) {
             for (int row = 7; row >= 0; row--) {
                 System.out.print((row + 1) + " ");
+
                 for (int col = 0; col < 8; col++) {
-                   printBoardHelper(row, col, board);
+                    printBoardHelper(row, col, board);
                 }
+
                 System.out.println(" " + (row + 1));
             }
         } else {
             for (int row = 0; row < 8; row++) {
                 System.out.print((row + 1) + " ");
+
                 for (int col = 7; col >= 0; col--) {
                     printBoardHelper(row, col, board);
                 }
+
                 System.out.println(" " + (row + 1));
             }
         }
 
-        System.out.print("  ");
-        for (String c : columns) {
-            System.out.print(c + "   ");
-        }
+        System.out.print("   ");
+        for (String c : cols) System.out.print(" " + c + "  ");
         System.out.println("\n");
 
         return "";
@@ -234,10 +235,24 @@ public class GameplayUI implements NotificationHandler {
         return b;
     }
 
+    private String pad(String s) {
+        String clean = s.replaceAll("\u001B\\[[;\\d]*m", "");
+
+        int len = clean.length();
+        if (len == 0) return "   ";
+        if (len == 1) return " " + s + " ";
+        if (len == 2) return " " + s;
+        return s;
+    }
+
+
     public void printBoardHelper(int row, int col, String[][] board) {
-        boolean light = (row + col) % 2 != 0;
-        String bg = light ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
-        System.out.print(bg + board[row][col] + EscapeSequences.RESET_BG_COLOR);
+        boolean lightSquare = (row + col) % 2 == 0;
+        String bg = lightSquare ?
+                EscapeSequences.SET_BG_COLOR_LIGHT_PINK :
+                EscapeSequences.SET_BG_COLOR_DARK_PINK;
+
+        System.out.print(bg + pad(board[row][col]) + EscapeSequences.RESET_BG_COLOR);
     }
 
     public void updateBoard(String json) {
@@ -306,13 +321,19 @@ public class GameplayUI implements NotificationHandler {
         try {
             ChessPosition pos = uiHelper.toPosition(input);
             ChessGame game = uiHelper.getGame().game();
-            if (game == null) return "Game not loaded.";
+            if (game == null) {
+                return "Game not loaded.";
+            }
 
             var piece = game.getPieceAt(pos);
-            if (piece == null) return "No piece at that position.";
+            if (piece == null) {
+                return "No piece at that position.";
+            }
 
             var moves = game.validMoves(pos);
-            if (moves.isEmpty()) return "No valid moves for this piece.";
+            if (moves.isEmpty()) {
+                return "No valid moves for this piece.";
+            }
 
             String[][] board = getBoardFromGame();
             for (var move : moves) {
