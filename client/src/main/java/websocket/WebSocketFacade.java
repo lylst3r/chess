@@ -14,7 +14,7 @@ public class WebSocketFacade extends Endpoint {
 
     private Session session;
     private final NotificationHandler handler;
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     public WebSocketFacade(String baseUrl, NotificationHandler handler) throws ResponseException {
         try {
@@ -27,15 +27,15 @@ public class WebSocketFacade extends Endpoint {
             this.session = container.connectToServer(this, uri);
 
             this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
-                ServerMessage base = gson.fromJson(message, ServerMessage.class);
+                ServerMessage base = GSON.fromJson(message, ServerMessage.class);
 
                 switch (base.getServerMessageType()) {
                     case LOAD_GAME -> handler.notify(
-                            gson.fromJson(message, LoadGameMessage.class));
+                            GSON.fromJson(message, LoadGameMessage.class));
                     case ERROR -> handler.notify(
-                            gson.fromJson(message, ErrorMessage.class));
+                            GSON.fromJson(message, ErrorMessage.class));
                     case NOTIFICATION -> handler.notify(
-                            gson.fromJson(message, NotificationMessage.class));
+                            GSON.fromJson(message, NotificationMessage.class));
                 }
             });
 
@@ -49,7 +49,7 @@ public class WebSocketFacade extends Endpoint {
 
     public void send(UserGameCommand command) throws ResponseException {
         try {
-            session.getBasicRemote().sendText(gson.toJson(command));
+            session.getBasicRemote().sendText(GSON.toJson(command));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }

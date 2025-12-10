@@ -51,12 +51,6 @@ public class GameplayUI implements NotificationHandler {
             System.out.println("couldn't print board");
         }
 
-        /*if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {
-            printWhiteBoard();
-        }
-        if (uiHelper.getColor().equals("DARK") ||  uiHelper.getColor().equals("dark")) {
-            printBlackBoard();
-        }*/
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
@@ -106,44 +100,6 @@ public class GameplayUI implements NotificationHandler {
         } catch (ResponseException ex) {
             return "Error: " + ex.getMessage();
         }
-    }
-
-    private String[][] initialBoard() {
-        String[][] b = new String[8][8];
-        System.out.print(SET_TEXT_COLOR_OFF_WHITE);
-
-        // White pieces
-        b[0][0] = WHITE_ROOK;
-        b[0][1] = WHITE_KNIGHT;
-        b[0][2] = WHITE_BISHOP;
-        b[0][3] = WHITE_QUEEN;
-        b[0][4] = WHITE_KING;
-        b[0][5] = WHITE_BISHOP;
-        b[0][6] = WHITE_KNIGHT;
-        b[0][7] = WHITE_ROOK;
-        for (int c = 0; c < 8; c++) {
-            b[1][c] = WHITE_PAWN;
-        }
-
-        // Black pieces
-        b[7][0] = BLACK_ROOK;
-        b[7][1] = BLACK_KNIGHT;
-        b[7][2] = BLACK_BISHOP;
-        b[7][3] = BLACK_QUEEN;
-        b[7][4] = BLACK_KING;
-        b[7][5] = BLACK_BISHOP;
-        b[7][6] = BLACK_KNIGHT;
-        b[7][7] = BLACK_ROOK;
-        for (int c = 0; c < 8; c++) {
-            b[6][c] = BLACK_PAWN;
-        }
-
-        for (int r = 2; r <= 5; r++) {
-            for (int c = 0; c < 8; c++) {
-                b[r][c] = EscapeSequences.EMPTY;
-            }
-        }
-        return b;
     }
 
     @Override
@@ -206,7 +162,9 @@ public class GameplayUI implements NotificationHandler {
         }
 
         System.out.print("   ");
-        for (String c : cols) System.out.print(" " + c + "  ");
+        for (String c : cols) {
+            System.out.print(" " + c + "  ");
+        }
         System.out.println("\n");
 
         return "";
@@ -239,9 +197,15 @@ public class GameplayUI implements NotificationHandler {
         String clean = s.replaceAll("\u001B\\[[;\\d]*m", "");
 
         int len = clean.length();
-        if (len == 0) return "   ";
-        if (len == 1) return " " + s + " ";
-        if (len == 2) return " " + s;
+        if (len == 0) {
+            return "   ";
+        }
+        if (len == 1) {
+            return " " + s + " ";
+        }
+        if (len == 2) {
+            return " " + s;
+        }
         return s;
     }
 
@@ -254,17 +218,6 @@ public class GameplayUI implements NotificationHandler {
 
         System.out.print(bg + pad(board[row][col]) + EscapeSequences.RESET_BG_COLOR);
     }
-
-    public void updateBoard(String json) {
-        try {
-            LoadGameMessage m = new Gson().fromJson(json, LoadGameMessage.class);
-            uiHelper.setGame(m.getGame());
-            reprintBoard();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
 
     public String printWhiteBoard(String... params) {
         return printBoard(true);
@@ -281,7 +234,9 @@ public class GameplayUI implements NotificationHandler {
 
         try {
             String[] parts = moveText.split(" ");
-            if (parts.length != 2) return "Invalid move format";
+            if (parts.length != 2) {
+                return "Invalid move format";
+            }
 
             var from = uiHelper.toPosition(parts[0]);
             var to   = uiHelper.toPosition(parts[1]);
@@ -357,7 +312,9 @@ public class GameplayUI implements NotificationHandler {
                 new String[]{"h","g","f","e","d","c","b","a"};
 
         System.out.print("  ");
-        for (String c : columns) System.out.print(c + "   ");
+        for (String c : columns) {
+            System.out.print(c + "   ");
+        }
         System.out.println();
 
         if (isWhitePerspective) {
@@ -379,7 +336,9 @@ public class GameplayUI implements NotificationHandler {
         }
 
         System.out.print("  ");
-        for (String c : columns) System.out.print(c + "   ");
+        for (String c : columns) {
+            System.out.print(c + "   ");
+        }
         System.out.println("\n");
     }
 

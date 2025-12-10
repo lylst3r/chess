@@ -451,7 +451,9 @@ public class ChessGame {
     }
 
     public void resign(TeamColor color) {
-        if (gameOver) return;  // already finished
+        if (gameOver) {
+            return;
+        }
 
         gameOver = true;
         winner = (color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;

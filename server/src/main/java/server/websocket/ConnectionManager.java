@@ -25,7 +25,9 @@ public class ConnectionManager {
 
     public void broadcast(int gameID, Session exclude, ServerMessage message) throws IOException {
         var sessions = gameConnections.get(gameID);
-        if (sessions == null) return;
+        if (sessions == null) {
+            return;
+        }
 
         String json = new Gson().toJson(message);
 
