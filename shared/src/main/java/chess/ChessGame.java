@@ -48,6 +48,15 @@ public class ChessGame {
         return mainBoard.getPiece(new ChessPosition(r, c));
     }
 
+    public ChessPiece getPieceAt(ChessPosition pos) {
+        int r = pos.getRow();
+        int c = pos.getColumn();
+        if (r < 0 || r > 7 || c < 0 || c > 7) {
+            return null;
+        }
+        return mainBoard.getPiece(new ChessPosition(r, c));
+    }
+
     /**
      * Enum identifying the 2 possible teams in a chess game
      */

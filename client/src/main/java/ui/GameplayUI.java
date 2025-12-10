@@ -2,6 +2,7 @@ package ui;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import server.ServerFacade;
@@ -298,8 +299,69 @@ public class GameplayUI implements NotificationHandler {
     }
 
     public String highlightMoves() throws ResponseException {
-        return null;
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter the piece to highlight (e.g., e2): ");
+        String input = sc.nextLine();
+
+        try {
+            ChessPosition pos = uiHelper.toPosition(input);
+            ChessGame game = uiHelper.getGame().game();
+            if (game == null) return "Game not loaded.";
+
+            var piece = game.getPieceAt(pos);
+            if (piece == null) return "No piece at that position.";
+
+            var moves = game.validMoves(pos);
+            if (moves.isEmpty()) return "No valid moves for this piece.";
+
+            String[][] board = getBoardFromGame();
+            for (var move : moves) {
+                int r = move.getStartPosition().getRow() - 1;
+                int c = move.getStartPosition().getColumn() - 1;
+                board[r][c] = EscapeSequences.SET_TEXT_COLOR_YELLOW + board[r][c] + EscapeSequences.RESET_TEXT_COLOR;
+            }
+
+            printBoardWithHighlights(board);
+            return "";
+        } catch (Exception e) {
+            return "Invalid input: " + e.getMessage();
+        }
     }
+
+    private void printBoardWithHighlights(String[][] board) {
+        boolean isWhitePerspective = uiHelper.getColor().equalsIgnoreCase("LIGHT");
+
+        String[] columns = isWhitePerspective ?
+                new String[]{"a","b","c","d","e","f","g","h"} :
+                new String[]{"h","g","f","e","d","c","b","a"};
+
+        System.out.print("  ");
+        for (String c : columns) System.out.print(c + "   ");
+        System.out.println();
+
+        if (isWhitePerspective) {
+            for (int row = 7; row >= 0; row--) {
+                System.out.print((row + 1) + " ");
+                for (int col = 0; col < 8; col++) {
+                    printBoardHelper(row, col, board);
+                }
+                System.out.println(" " + (row + 1));
+            }
+        } else {
+            for (int row = 0; row < 8; row++) {
+                System.out.print((row + 1) + " ");
+                for (int col = 7; col >= 0; col--) {
+                    printBoardHelper(row, col, board);
+                }
+                System.out.println(" " + (row + 1));
+            }
+        }
+
+        System.out.print("  ");
+        for (String c : columns) System.out.print(c + "   ");
+        System.out.println("\n");
+    }
+
 
     public String leave(String... params) {
         try {
