@@ -107,41 +107,4 @@ public class GameService {
         }
     }
 
-    public void leaveGame(int gameID, String username) throws ResponseException, DataAccessException {
-        try {
-            GameData game = dao.getGameDAO().getGame(gameID);
-
-            if (game == null) {
-                throw new ResponseException(ResponseException.Code.BadRequest, "Error: bad request");
-            }
-
-            String white = game.whiteUsername();
-            String black = game.blackUsername();
-
-            // Determine if the user is in the game
-            boolean isWhite = username.equals(white);
-            boolean isBlack = username.equals(black);
-
-            if (!isWhite && !isBlack) {
-                return;
-            }
-
-            GameData newGame;
-
-            if (isWhite) {
-                newGame = new GameData(game.gameID(), null, game.blackUsername(),
-                        game.gameName(), game.game());
-            } else {
-                newGame = new GameData(game.gameID(), game.whiteUsername(), null,
-                        game.gameName(), game.game());
-            }
-
-            dao.getGameDAO().updateGame(gameID, newGame);
-
-        } catch (DataAccessException e) {
-            throw new ResponseException(ResponseException.Code.ServerError,
-                    "Error: Internal Server Error " + e.getMessage());
-        }
-    }
-
 }

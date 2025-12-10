@@ -120,7 +120,7 @@ public class GameplayUI implements NotificationHandler {
                 }
 
                 try {
-                    reprintBoard(); // Always refresh the board
+                    reprintBoard();
                 } catch (ResponseException e) {
                     System.out.println("Error printing board: " + e.getMessage());
                 }
@@ -157,7 +157,9 @@ public class GameplayUI implements NotificationHandler {
                 new String[]{"h","g","f","e","d","c","b","a"};
 
         System.out.print(" ");
-        for (String c : cols) System.out.print(" " + c + "  ");
+        for (String c : cols) {
+            System.out.print(" " + c + "  ");
+        }
         System.out.println();
 
         if (isWhitePerspective) {
@@ -195,12 +197,15 @@ public class GameplayUI implements NotificationHandler {
         String[][] board = new String[8][8];
 
         // Fill empty squares
-        for (int r = 0; r < 8; r++)
-            for (int c = 0; c < 8; c++)
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
                 board[r][c] = EscapeSequences.EMPTY;
+            }
+        }
 
-        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null)
+        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null) {
             return board;
+        }
 
         ChessGame game = uiHelper.getGame().game();
 
@@ -335,13 +340,19 @@ public class GameplayUI implements NotificationHandler {
         try {
             ChessPosition pos = uiHelper.toPosition(input);
             ChessGame game = uiHelper.getGame().game();
-            if (game == null) return "Game not loaded.";
+            if (game == null) {
+                return "Game not loaded.";
+            }
 
             ChessPiece piece = game.getPieceAt(pos);
-            if (piece == null) return "No piece at that position.";
+            if (piece == null) {
+                return "No piece at that position.";
+            }
 
             var moves = game.validMoves(pos);
-            if (moves.isEmpty()) return "No valid moves for this piece.";
+            if (moves.isEmpty()) {
+                return "No valid moves for this piece.";
+            }
 
             boolean isWhite = uiHelper.getColor().equalsIgnoreCase("LIGHT");
             String[][] board = getBoardFromGame(isWhite, -1, -1);
@@ -383,7 +394,9 @@ public class GameplayUI implements NotificationHandler {
                 new String[]{"h","g","f","e","d","c","b","a"};
 
         System.out.print("  ");
-        for (String c : columns) System.out.print(c + "   ");
+        for (String c : columns) {
+            System.out.print(c + "   ");
+        }
         System.out.println();
 
         if (isWhitePerspective) {
@@ -405,7 +418,9 @@ public class GameplayUI implements NotificationHandler {
         }
 
         System.out.print("  ");
-        for (String c : columns) System.out.print(c + "   ");
+        for (String c : columns) {
+            System.out.print(c + "   ");
+        }
         System.out.println("\n");
     }
 
