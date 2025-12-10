@@ -12,6 +12,8 @@ import websocket.WebSocketFacade;
 import websocket.commands.ConnectCommand;
 import websocket.commands.LeaveCommand;
 import websocket.commands.MakeMoveCommand;
+import websocket.commands.ResignCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -20,6 +22,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
+import static websocket.commands.UserGameCommand.CommandType.MAKE_MOVE;
+import static websocket.commands.UserGameCommand.CommandType.RESIGN;
 
 public class GameplayUI implements NotificationHandler {
     private final ServerFacade server;
@@ -106,6 +110,7 @@ public class GameplayUI implements NotificationHandler {
     @Override
     public void notify(ServerMessage message) {
         switch (message.getServerMessageType()) {
+
             case LOAD_GAME -> {
                 LoadGameMessage m = (LoadGameMessage) message;
                 uiHelper.setGame(m.getGame());
@@ -115,21 +120,37 @@ public class GameplayUI implements NotificationHandler {
                 }
 
                 try {
-                    reprintBoard();
+                    reprintBoard(); // Always refresh the board
                 } catch (ResponseException e) {
                     System.out.println("Error printing board: " + e.getMessage());
                 }
             }
-            case ERROR -> System.out.println("Server error: " + message.getErrorMessage());
-            case NOTIFICATION -> System.out.println(((NotificationMessage) message).getMessage());
+
+            case NOTIFICATION -> {
+                NotificationMessage m = (NotificationMessage) message;
+                System.out.println(m.getMessage());
+
+                try {
+                    reprintBoard();
+                } catch (ResponseException e) {
+                    System.out.println("Error updating board: " + e.getMessage());
+                }
+            }
+
+            case ERROR -> {
+                ErrorMessage m = (ErrorMessage) message;
+                System.out.println("Server error: " + m.getErrorMessage());
+            }
+
             default -> System.out.println("Unknown message: " + message);
         }
     }
 
 
-    private String printBoard(boolean isWhitePerspective) {
+
+    private String printBoard(boolean isWhitePerspective, int one, int two) {
         //String[][] board = initialBoard();
-        String[][] board = getBoardFromGame(isWhitePerspective);
+        String[][] board = getBoardFromGame(isWhitePerspective, one, two);
 
         String[] cols = isWhitePerspective ?
                 new String[]{"a","b","c","d","e","f","g","h"} :
@@ -144,7 +165,7 @@ public class GameplayUI implements NotificationHandler {
                 System.out.print((row + 1) + " ");
 
                 for (int col = 0; col < 8; col++) {
-                    printBoardHelper(row, col, board);
+                    printBoardHelper(row, col, board, null, null);
                 }
 
                 System.out.println(" " + (row + 1));
@@ -154,7 +175,7 @@ public class GameplayUI implements NotificationHandler {
                 System.out.print((row + 1) + " ");
 
                 for (int col = 7; col >= 0; col--) {
-                    printBoardHelper(row, col, board);
+                    printBoardHelper(row, col, board, null, null);
                 }
 
                 System.out.println(" " + (row + 1));
@@ -170,75 +191,43 @@ public class GameplayUI implements NotificationHandler {
         return "";
     }
 
-    private String[][] initialBoard() {
-        String[][] b = new String[8][8];
-        System.out.print(SET_TEXT_COLOR_OFF_WHITE);
-
-        // White pieces
-        b[0][0] = WHITE_ROOK;
-        b[0][1] = WHITE_KNIGHT;
-        b[0][2] = WHITE_BISHOP;
-        b[0][3] = WHITE_QUEEN;
-        b[0][4] = WHITE_KING;
-        b[0][5] = WHITE_BISHOP;
-        b[0][6] = WHITE_KNIGHT;
-        b[0][7] = WHITE_ROOK;
-        for (int c = 0; c < 8; c++) {
-            b[1][c] = WHITE_PAWN;
-        }
-
-        // Black pieces
-        b[7][0] = BLACK_ROOK;
-        b[7][1] = BLACK_KNIGHT;
-        b[7][2] = BLACK_BISHOP;
-        b[7][3] = BLACK_QUEEN;
-        b[7][4] = BLACK_KING;
-        b[7][5] = BLACK_BISHOP;
-        b[7][6] = BLACK_KNIGHT;
-        b[7][7] = BLACK_ROOK;
-        for (int c = 0; c < 8; c++) {
-            b[6][c] = BLACK_PAWN;
-        }
-
-        for (int r = 2; r <= 5; r++) {
-            for (int c = 0; c < 8; c++) {
-                b[r][c] = EscapeSequences.EMPTY;
-            }
-        }
-        return b;
-    }
-
-    private String[][] getBoardFromGame(boolean isWhitePerspective) {
+    private String[][] getBoardFromGame(boolean isWhitePerspective, int highlightRow, int highlightCol) {
         String[][] board = new String[8][8];
 
+        // Fill empty squares
         for (int r = 0; r < 8; r++)
             for (int c = 0; c < 8; c++)
                 board[r][c] = EscapeSequences.EMPTY;
 
-        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null) {
+        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null)
             return board;
-        }
 
         ChessGame game = uiHelper.getGame().game();
 
+        // Populate pieces with correct color
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition pos = new ChessPosition(row, col);
                 ChessPiece piece = game.getPieceAt(pos);
                 if (piece != null) {
-                    int r = 8 - row;
+                    int r = row - 1;
                     int c = col - 1;
-                    board[r][c] = piece.getUnicodeSymbol();
+
+                    String uni = piece.getUnicodeSymbol();
+                    String colorCode = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ?
+                            EscapeSequences.SET_TEXT_COLOR_WHITE :
+                            EscapeSequences.SET_TEXT_COLOR_BLACK;
+
+                    board[r][c] = colorCode + uni + EscapeSequences.RESET_TEXT_COLOR;
                 }
             }
         }
 
-        if (!isWhitePerspective) {
-            String[][] inverted = new String[8][8];
-            for (int r = 0; r < 8; r++)
-                for (int c = 0; c < 8; c++)
-                    inverted[r][c] = board[7 - r][7 - c];
-            return inverted;
+        // Highlight selected square (optional)
+        if (highlightRow >= 0 && highlightRow < 8 && highlightCol >= 0 && highlightCol < 8) {
+            board[highlightRow][highlightCol] = EscapeSequences.SET_BG_COLOR_MAGENTA +
+                    board[highlightRow][highlightCol] +
+                    EscapeSequences.RESET_BG_COLOR;
         }
 
         return board;
@@ -263,22 +252,28 @@ public class GameplayUI implements NotificationHandler {
         return s;
     }
 
-
-    public void printBoardHelper(int row, int col, String[][] board) {
+    public void printBoardHelper(int row, int col, String[][] board, boolean[][] highlightYellow, boolean[][] highlightMagenta) {
         boolean lightSquare = (row + col) % 2 == 0;
-        String bg = lightSquare ?
-                EscapeSequences.SET_BG_COLOR_LIGHT_PINK :
-                EscapeSequences.SET_BG_COLOR_DARK_PINK;
+        String bg = lightSquare ? EscapeSequences.SET_BG_COLOR_LIGHT_PINK : EscapeSequences.SET_BG_COLOR_DARK_PINK;
+
+        if (highlightYellow != null && highlightYellow[row][col]) {
+            bg = EscapeSequences.SET_BG_COLOR_YELLOW;
+        }
+
+        if (highlightMagenta != null && highlightMagenta[row][col]) {
+            bg = EscapeSequences.SET_BG_COLOR_MAGENTA;
+        }
 
         System.out.print(bg + pad(board[row][col]) + EscapeSequences.RESET_BG_COLOR);
     }
 
+
     public String printWhiteBoard(String... params) {
-        return printBoard(true);
+        return printBoard(true, -1 ,-1);
     }
 
     public String printBlackBoard(String... params) {
-        return printBoard(false);
+        return printBoard(false, -1, -1);
     }
 
     public String makeMove() {
@@ -289,26 +284,36 @@ public class GameplayUI implements NotificationHandler {
         try {
             String[] parts = moveText.split(" ");
             if (parts.length != 2) {
-                return "Invalid move format";
+                return "Invalid move format.";
             }
 
-            var from = uiHelper.toPosition(parts[0]);
-            var to   = uiHelper.toPosition(parts[1]);
+            ChessPosition from = uiHelper.toPosition(parts[0]);
+            ChessPosition to   = uiHelper.toPosition(parts[1]);
 
-            var move = new ChessMove(from, to, null);
+            ChessMove move = new ChessMove(from, to, null);
 
-            ws.send(new MakeMoveCommand(uiHelper.getAuthToken(),
-                    uiHelper.getGameID(),
-                    move));
+            ws.send(new MakeMoveCommand(uiHelper.getAuthToken(), uiHelper.getGameID(), move));
 
-            return "Move sent.";
+            ChessGame game = uiHelper.getGame().game();
+            game.makeMove(move);
+
+            reprintBoard();
+
+            return "Moved from " + parts[0] + " to " + parts[1] + ".";
         } catch (Exception e) {
-            return "Invalid move.";
+            return "Invalid move: " + e.getMessage();
         }
     }
 
     public String resign() {
-        return null;
+        try {
+            ws.send(new ResignCommand(uiHelper.getAuthToken(), uiHelper.getGameID()));
+            uiHelper.getGame().game().resign(uiHelper.getColor().equalsIgnoreCase("LIGHT") ?
+                    ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+            return "You resigned the game.";
+        } catch (ResponseException e) {
+            return "Error resigning: " + e.getMessage();
+        }
     }
 
 
@@ -330,38 +335,47 @@ public class GameplayUI implements NotificationHandler {
         try {
             ChessPosition pos = uiHelper.toPosition(input);
             ChessGame game = uiHelper.getGame().game();
-            if (game == null) {
-                return "Game not loaded.";
-            }
+            if (game == null) return "Game not loaded.";
 
-            var piece = game.getPieceAt(pos);
-            if (piece == null) {
-                return "No piece at that position.";
-            }
+            ChessPiece piece = game.getPieceAt(pos);
+            if (piece == null) return "No piece at that position.";
 
             var moves = game.validMoves(pos);
-            if (moves.isEmpty()) {
-                return "No valid moves for this piece.";
-            }
-            Boolean isWhite = false;
-            if (uiHelper.getColor().equals("LIGHT")) {
-                isWhite = true;
-            }
-            String[][] board = getBoardFromGame(isWhite);
+            if (moves.isEmpty()) return "No valid moves for this piece.";
+
+            boolean isWhite = uiHelper.getColor().equalsIgnoreCase("LIGHT");
+            String[][] board = getBoardFromGame(isWhite, -1, -1);
+
+            boolean[][] highlightYellow = new boolean[8][8];
+            boolean[][] highlightMagenta = new boolean[8][8];
+
             for (var move : moves) {
-                int r = move.getStartPosition().getRow() - 1;
-                int c = move.getStartPosition().getColumn() - 1;
-                board[r][c] = EscapeSequences.SET_TEXT_COLOR_YELLOW + board[r][c] + EscapeSequences.RESET_TEXT_COLOR;
+                int r = move.getEndPosition().getRow() - 1;
+                int c = move.getEndPosition().getColumn() - 1;
+                if (!isWhite) {
+                    r = 7 - r;
+                    c = 7 - c;
+                }
+                highlightYellow[r][c] = true;
             }
 
-            printBoardWithHighlights(board);
+            int row = pos.getRow() - 1;
+            int col = pos.getColumn() - 1;
+            if (!isWhite) {
+                row = 7 - row;
+                col = 7 - col;
+            }
+            highlightMagenta[row][col] = true;
+
+            printBoardWithHighlights(board, highlightYellow, highlightMagenta);
+
             return "";
         } catch (Exception e) {
             return "Invalid input: " + e.getMessage();
         }
     }
 
-    private void printBoardWithHighlights(String[][] board) {
+    private void printBoardWithHighlights(String[][] board, boolean[][] highlightYellow, boolean[][] highlightMagenta) {
         boolean isWhitePerspective = uiHelper.getColor().equalsIgnoreCase("LIGHT");
 
         String[] columns = isWhitePerspective ?
@@ -369,16 +383,14 @@ public class GameplayUI implements NotificationHandler {
                 new String[]{"h","g","f","e","d","c","b","a"};
 
         System.out.print("  ");
-        for (String c : columns) {
-            System.out.print(c + "   ");
-        }
+        for (String c : columns) System.out.print(c + "   ");
         System.out.println();
 
         if (isWhitePerspective) {
             for (int row = 7; row >= 0; row--) {
                 System.out.print((row + 1) + " ");
                 for (int col = 0; col < 8; col++) {
-                    printBoardHelper(row, col, board);
+                    printBoardHelper(row, col, board, highlightYellow, highlightMagenta);
                 }
                 System.out.println(" " + (row + 1));
             }
@@ -386,16 +398,14 @@ public class GameplayUI implements NotificationHandler {
             for (int row = 0; row < 8; row++) {
                 System.out.print((row + 1) + " ");
                 for (int col = 7; col >= 0; col--) {
-                    printBoardHelper(row, col, board);
+                    printBoardHelper(row, col, board, highlightYellow, highlightMagenta);
                 }
                 System.out.println(" " + (row + 1));
             }
         }
 
         System.out.print("  ");
-        for (String c : columns) {
-            System.out.print(c + "   ");
-        }
+        for (String c : columns) System.out.print(c + "   ");
         System.out.println("\n");
     }
 

@@ -73,11 +73,11 @@ public class UIHelper {
             throw new ResponseException(ResponseException.Code.BadRequest, "Invalid coordinate: " + coord);
         }
 
-        char file = coord.charAt(0); // a–h
-        char rank = coord.charAt(1); // 1–8
+        char file = coord.charAt(0);
+        char rank = coord.charAt(1);
 
-        int col = file - 'a' + 1;  // convert a→1, b→2, ..., h→8
-        int row = rank - '0';      // convert '1'→1 …
+        int col = file - 'a' + 1;
+        int row = rank - '0';
 
         if (col < 1 || col > 8 || row < 1 || row > 8) {
             throw new ResponseException(ResponseException.Code.BadRequest, "Coordinate out of range: " + coord);
