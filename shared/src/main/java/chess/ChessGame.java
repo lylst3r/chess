@@ -42,7 +42,7 @@ public class ChessGame {
     }
 
     public ChessPiece getPieceAt(int r, int c) {
-        if (r < 0 || r > 7 || c < 0 || c > 7) {
+        if (r < 1 || r > 8 || c < 1 || c > 8) {
             return null;
         }
         return mainBoard.getPiece(new ChessPosition(r, c));
@@ -51,7 +51,7 @@ public class ChessGame {
     public ChessPiece getPieceAt(ChessPosition pos) {
         int r = pos.getRow();
         int c = pos.getColumn();
-        if (r < 0 || r > 7 || c < 0 || c > 7) {
+        if (r < 1 || r > 8 || c < 1 || c > 8) {
             return null;
         }
         return mainBoard.getPiece(new ChessPosition(r, c));
@@ -94,7 +94,6 @@ public class ChessGame {
                 }
             }
         }
-
         //castling
         if (piece.getPieceType() == ChessPiece.PieceType.KING && !piece.hasMoved()) {
             int row = startPosition.getRow();
@@ -110,7 +109,6 @@ public class ChessGame {
 
             if ( rookKingExists && !rookKingSide.hasMoved() && spotNotTaken && !isInCheck(piece.getTeamColor())) {
 
-                //check?
                 ChessBoard tempBoard = new ChessBoard();
                 setAnyBoard(tempBoard, mainBoard);
                 ChessPiece kingCopy = tempBoard.getPiece(startPosition);
@@ -135,7 +133,6 @@ public class ChessGame {
 
             if ( rookQueenExists && !rookQueenSide.hasMoved() && spotFree && !isInCheck(piece.getTeamColor())) {
 
-                //check>
                 ChessBoard tempBoard = new ChessBoard();
                 setAnyBoard(tempBoard, mainBoard);
                 ChessPiece kingCopy = tempBoard.getPiece(startPosition);
@@ -166,7 +163,6 @@ public class ChessGame {
                 validMoves.add(enPassantMove);
             }
         }
-
         return validMoves;
     }
 
@@ -440,7 +436,6 @@ public class ChessGame {
         if (piece.getTeamColor() != teamTurn) {
             return false;
         }
-
         Collection<ChessMove> legalMoves = validMoves(start);
 
         return legalMoves.contains(move);
@@ -454,7 +449,6 @@ public class ChessGame {
         if (gameOver) {
             return;
         }
-
         gameOver = true;
         winner = (color == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }

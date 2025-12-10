@@ -67,16 +67,16 @@ public class ChessPiece {
     }
 
     public String getUnicodeSymbol() {
-        switch (type) {
-            case KING:   return (pieceColor == ChessGame.TeamColor.WHITE) ? "♔" : "♚";
-            case QUEEN:  return (pieceColor == ChessGame.TeamColor.WHITE) ? "♕" : "♛";
-            case ROOK:   return (pieceColor == ChessGame.TeamColor.WHITE) ? "♖" : "♜";
-            case BISHOP: return (pieceColor == ChessGame.TeamColor.WHITE) ? "♗" : "♝";
-            case KNIGHT: return (pieceColor == ChessGame.TeamColor.WHITE) ? "♘" : "♞";
-            case PAWN:   return (pieceColor == ChessGame.TeamColor.WHITE) ? "♙" : "♟";
-            default:     return " ";
-        }
+        return switch (this.type) {
+            case KING -> (this.pieceColor == ChessGame.TeamColor.WHITE ? "♔" : "♚");
+            case QUEEN -> (this.pieceColor == ChessGame.TeamColor.WHITE ? "♕" : "♛");
+            case ROOK -> (this.pieceColor == ChessGame.TeamColor.WHITE ? "♖" : "♜");
+            case BISHOP -> (this.pieceColor == ChessGame.TeamColor.WHITE ? "♗" : "♝");
+            case KNIGHT -> (this.pieceColor == ChessGame.TeamColor.WHITE ? "♘" : "♞");
+            case PAWN -> (this.pieceColor == ChessGame.TeamColor.WHITE ? "♙" : "♟");
+        };
     }
+
 
     @Override
     public boolean equals(Object o) {

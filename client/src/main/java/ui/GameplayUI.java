@@ -2,6 +2,7 @@ package ui;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import com.google.gson.Gson;
 import exception.ResponseException;
@@ -128,14 +129,13 @@ public class GameplayUI implements NotificationHandler {
 
     private String printBoard(boolean isWhitePerspective) {
         //String[][] board = initialBoard();
-        String[][] board = getBoardFromGame();
+        String[][] board = getBoardFromGame(isWhitePerspective);
 
-        // Column labels
         String[] cols = isWhitePerspective ?
                 new String[]{"a","b","c","d","e","f","g","h"} :
                 new String[]{"h","g","f","e","d","c","b","a"};
 
-        System.out.print("   ");
+        System.out.print(" ");
         for (String c : cols) System.out.print(" " + c + "  ");
         System.out.println();
 
@@ -161,7 +161,7 @@ public class GameplayUI implements NotificationHandler {
             }
         }
 
-        System.out.print("   ");
+        System.out.print(" ");
         for (String c : cols) {
             System.out.print(" " + c + "  ");
         }
@@ -170,28 +170,82 @@ public class GameplayUI implements NotificationHandler {
         return "";
     }
 
-    private String[][] getBoardFromGame() {
-        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null) {
-            String[][] b = new String[8][8];
-            for (int r = 0; r < 8; r++) {
-                for (int c = 0; c < 8; c++) {
-                    b[r][c] = EscapeSequences.EMPTY;
-                }
-            }
-            return b;
+    private String[][] initialBoard() {
+        String[][] b = new String[8][8];
+        System.out.print(SET_TEXT_COLOR_OFF_WHITE);
+
+        // White pieces
+        b[0][0] = WHITE_ROOK;
+        b[0][1] = WHITE_KNIGHT;
+        b[0][2] = WHITE_BISHOP;
+        b[0][3] = WHITE_QUEEN;
+        b[0][4] = WHITE_KING;
+        b[0][5] = WHITE_BISHOP;
+        b[0][6] = WHITE_KNIGHT;
+        b[0][7] = WHITE_ROOK;
+        for (int c = 0; c < 8; c++) {
+            b[1][c] = WHITE_PAWN;
         }
 
-        ChessGame game = uiHelper.getGame().game();
-        String[][] b = new String[8][8];
+        // Black pieces
+        b[7][0] = BLACK_ROOK;
+        b[7][1] = BLACK_KNIGHT;
+        b[7][2] = BLACK_BISHOP;
+        b[7][3] = BLACK_QUEEN;
+        b[7][4] = BLACK_KING;
+        b[7][5] = BLACK_BISHOP;
+        b[7][6] = BLACK_KNIGHT;
+        b[7][7] = BLACK_ROOK;
+        for (int c = 0; c < 8; c++) {
+            b[6][c] = BLACK_PAWN;
+        }
 
-        for (int r = 0; r < 8; r++) {
+        for (int r = 2; r <= 5; r++) {
             for (int c = 0; c < 8; c++) {
-                var piece = game.getPieceAt(r + 1, c + 1); // ChessGame uses 1–8 indexing
-                b[r][c] = (piece == null) ? EscapeSequences.EMPTY : piece.getUnicodeSymbol();
+                b[r][c] = EscapeSequences.EMPTY;
             }
         }
         return b;
     }
+
+    private String[][] getBoardFromGame(boolean isWhitePerspective) {
+        String[][] board = new String[8][8];
+
+        for (int r = 0; r < 8; r++)
+            for (int c = 0; c < 8; c++)
+                board[r][c] = EscapeSequences.EMPTY;
+
+        if (uiHelper.getGame() == null || uiHelper.getGame().game() == null) {
+            return board;
+        }
+
+        ChessGame game = uiHelper.getGame().game();
+
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = game.getPieceAt(pos);
+                if (piece != null) {
+                    int r = 8 - row;
+                    int c = col - 1;
+                    board[r][c] = piece.getUnicodeSymbol();
+                }
+            }
+        }
+
+        if (!isWhitePerspective) {
+            String[][] inverted = new String[8][8];
+            for (int r = 0; r < 8; r++)
+                for (int c = 0; c < 8; c++)
+                    inverted[r][c] = board[7 - r][7 - c];
+            return inverted;
+        }
+
+        return board;
+    }
+
+
+
 
     private String pad(String s) {
         String clean = s.replaceAll("\u001B\\[[;\\d]*m", "");
@@ -289,8 +343,11 @@ public class GameplayUI implements NotificationHandler {
             if (moves.isEmpty()) {
                 return "No valid moves for this piece.";
             }
-
-            String[][] board = getBoardFromGame();
+            Boolean isWhite = false;
+            if (uiHelper.getColor().equals("LIGHT")) {
+                isWhite = true;
+            }
+            String[][] board = getBoardFromGame(isWhite);
             for (var move : moves) {
                 int r = move.getStartPosition().getRow() - 1;
                 int c = move.getStartPosition().getColumn() - 1;
