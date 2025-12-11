@@ -38,6 +38,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     public void handleMessage(WsMessageContext ctx) {
         try {
             var root = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+            System.out.println(root);
 
             switch (root.getCommandType()) {
                 case CONNECT -> {
@@ -172,12 +173,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             var move = action.getMove();
-
-            if (!chessGame.isValidMove(move)) {
-                sendError(session, "Illegal move");
-                return;
-            }
-
             boolean isWhite = username.equals(game.whiteUsername());
             boolean isBlack = username.equals(game.blackUsername());
 
@@ -187,25 +182,49 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 return;
             }
 
+            if (!chessGame.isValidMove(move)) {
+                sendError(session, "Illegal move");
+                return;
+            }
+
             chessGame.makeMove(move);
 
+            // Update database
             GameData newGame = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), chessGame);
             dao.getGameDAO().updateGame(gameID, newGame);
 
-            var loadGame = new LoadGameMessage(newGame);
-            session.getRemote().sendString(gson.toJson(loadGame));
-
-            var note = new NotificationMessage(username + " made a move");
+            // Notify move
+            String start = toChessNotation(move.getStartPosition());
+            String end = toChessNotation(move.getEndPosition());
+            var note = new NotificationMessage(username + " moved from " + start + " to " + end);
             connections.broadcast(gameID, session, note);
 
-            var loadGameBroadcast = new LoadGameMessage(newGame);
-            connections.broadcast(gameID, session, loadGameBroadcast);
+            // Broadcast updated game
+            connections.broadcast(gameID, session, new LoadGameMessage(newGame));
+
+            // --- Check game state ---
+            ChessGame.TeamColor opponentColor = isWhite ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+
+            if (chessGame.isInCheck(opponentColor)) {
+                connections.broadcast(gameID, session, new NotificationMessage("Check to " + opponentColor + "!"));
+            }
+
+            if (chessGame.isInCheckmate(opponentColor)) {
+                connections.broadcast(gameID, session, new NotificationMessage("Checkmate! " + (isWhite ? "WHITE" : "BLACK") + " wins!"));
+                chessGame.resign(opponentColor); // mark game as over
+            }
+
+            if (chessGame.isInStalemate(opponentColor)) {
+                connections.broadcast(gameID, session, new NotificationMessage("Stalemate! The game is a draw."));
+                chessGame.resign(opponentColor); // mark game as over
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
             sendError(session, "Failed to make move");
         }
     }
+
 
     private void resign(String authToken, int gameID, Session session) throws IOException {
         try {
@@ -230,41 +249,47 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 return;
             }
 
-            if (game.game().isGameOver()) {
+            var chessGame = game.game();
+
+            if (chessGame.isGameOver()) {
                 sendError(session, "Game already over");
                 return;
             }
 
-            var chessGame = game.game();
             chessGame.resign(isWhite ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
 
-            GameData updated = new GameData(gameID,
+            GameData updated = new GameData(
+                    gameID,
                     game.whiteUsername(),
                     game.blackUsername(),
                     game.gameName(),
-                    chessGame);
+                    chessGame
+            );
 
             dao.getGameDAO().updateGame(gameID, updated);
 
-            var loadGame = new LoadGameMessage(updated);
-
             session.getRemote().sendString(gson.toJson(
-                    new NotificationMessage(username + " resigned")));
+                    new NotificationMessage("You resigned the game. You cannot make moves anymore.")));
 
             String winner = isWhite ? game.blackUsername() : game.whiteUsername();
+            String combined = username + " resigned. " + winner + " wins by resignation.";
+            connections.broadcast(gameID, session, new NotificationMessage(combined));
 
-            String combined = username + " resigned, " + winner + " wins by resignation";
-
-            connections.broadcast(gameID, session,
-                    new NotificationMessage(combined));
-
-
-            connections.remove(session);
+            session.close();
 
         } catch (Exception e) {
+            e.printStackTrace();
             sendError(session, "Failed to resign");
         }
     }
+
+    private String toChessNotation(chess.ChessPosition pos) {
+        char file = (char) ('a' + pos.getColumn() - 1); // column 1->'a', 2->'b', etc.
+        int rank = pos.getRow(); // row stays as 1-8
+        return "" + file + rank;
+    }
+
+
 
     private void sendError(Session session, String errorMessage) throws IOException {
         var error = new ErrorMessage(errorMessage);

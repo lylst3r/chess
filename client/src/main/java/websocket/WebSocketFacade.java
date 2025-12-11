@@ -26,7 +26,8 @@ public class WebSocketFacade extends Endpoint {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, uri);
 
-            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                public void onMessage(String message) {
                 ServerMessage base = GSON.fromJson(message, ServerMessage.class);
 
                 switch (base.getServerMessageType()) {
@@ -36,6 +37,7 @@ public class WebSocketFacade extends Endpoint {
                             GSON.fromJson(message, ErrorMessage.class));
                     case NOTIFICATION -> handler.notify(
                             GSON.fromJson(message, NotificationMessage.class));
+                }
                 }
             });
 

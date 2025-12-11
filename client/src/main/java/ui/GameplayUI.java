@@ -196,7 +196,6 @@ public class GameplayUI implements NotificationHandler {
     private String[][] getBoardFromGame(boolean isWhitePerspective, int highlightRow, int highlightCol) {
         String[][] board = new String[8][8];
 
-        // Fill empty squares
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
                 board[r][c] = EscapeSequences.EMPTY;
@@ -209,7 +208,6 @@ public class GameplayUI implements NotificationHandler {
 
         ChessGame game = uiHelper.getGame().game();
 
-        // Populate pieces with correct color
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition pos = new ChessPosition(row, col);
@@ -228,7 +226,6 @@ public class GameplayUI implements NotificationHandler {
             }
         }
 
-        // Highlight selected square (optional)
         if (highlightRow >= 0 && highlightRow < 8 && highlightCol >= 0 && highlightCol < 8) {
             board[highlightRow][highlightCol] = EscapeSequences.SET_BG_COLOR_MAGENTA +
                     board[highlightRow][highlightCol] +
@@ -283,6 +280,9 @@ public class GameplayUI implements NotificationHandler {
 
     public String makeMove() {
         Scanner sc = new Scanner(System.in);
+        if (uiHelper.getColor() == null) {
+            return "You are an observer.";
+        }
         System.out.print("Enter move (e.g. e2 e4): ");
         String moveText = sc.nextLine();
 
@@ -311,18 +311,36 @@ public class GameplayUI implements NotificationHandler {
     }
 
     public String resign() {
-        try {
-            ws.send(new ResignCommand(uiHelper.getAuthToken(), uiHelper.getGameID()));
-            uiHelper.getGame().game().resign(uiHelper.getColor().equalsIgnoreCase("LIGHT") ?
-                    ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
-            return "You resigned the game.";
-        } catch (ResponseException e) {
-            return "Error resigning: " + e.getMessage();
+        Scanner sc = new Scanner(System.in);
+        if (uiHelper.getColor() == null) {
+            return "You are an observer.";
+        }
+        System.out.print("Confirm resign: y or n: ");
+        String moveText = sc.nextLine();
+
+        if (moveText.equals("y")) {
+            try {
+                ws.send(new ResignCommand(uiHelper.getAuthToken(), uiHelper.getGameID()));
+                uiHelper.getGame().game().resign(uiHelper.getColor().equalsIgnoreCase("LIGHT") ?
+                        ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+                return "You resigned the game.";
+            } catch (ResponseException e) {
+                return "Error resigning: " + e.getMessage();
+            }
+        }
+        else if (moveText.equals("n")) {
+            return "Resign canceled.";
+        }
+        else {
+            return "Please enter y or n";
         }
     }
 
 
     public String reprintBoard() throws ResponseException {
+        if (uiHelper.getColor() == null || uiHelper.getColor().isEmpty()) {
+            return printWhiteBoard();
+        }
         if (uiHelper.getColor().equals("LIGHT") ||  uiHelper.getColor().equals("light")) {
             return printWhiteBoard();
         }
@@ -334,6 +352,14 @@ public class GameplayUI implements NotificationHandler {
 
     public String highlightMoves() throws ResponseException {
         Scanner sc = new Scanner(System.in);
+
+        boolean isObserver = uiHelper.getColor() == null || uiHelper.getColor().isEmpty();
+        boolean isWhite = isObserver || uiHelper.getColor().equalsIgnoreCase("LIGHT");
+
+        if (isObserver) {
+            System.out.println("You are observing. Highlights will show from white's perspective.");
+        }
+
         System.out.print("Enter the piece to highlight (e.g., e2): ");
         String input = sc.nextLine();
 
@@ -354,30 +380,23 @@ public class GameplayUI implements NotificationHandler {
                 return "No valid moves for this piece.";
             }
 
-            boolean isWhite = uiHelper.getColor().equalsIgnoreCase("LIGHT");
+            // Create board and highlight arrays
             String[][] board = getBoardFromGame(isWhite, -1, -1);
-
             boolean[][] highlightYellow = new boolean[8][8];
             boolean[][] highlightMagenta = new boolean[8][8];
 
+            // Helper to convert ChessPosition to array coordinates
             for (var move : moves) {
-                int r = move.getEndPosition().getRow() - 1;
-                int c = move.getEndPosition().getColumn() - 1;
-                if (!isWhite) {
-                    r = 7 - r;
-                    c = 7 - c;
-                }
+                int r = 8 - move.getEndPosition().getRow(); // always convert rank to 0-index top-down
+                int c = move.getEndPosition().getColumn() - 1; // column a=0, b=1...
                 highlightYellow[r][c] = true;
             }
 
-            int row = pos.getRow() - 1;
+            int row = 8 - pos.getRow();
             int col = pos.getColumn() - 1;
-            if (!isWhite) {
-                row = 7 - row;
-                col = 7 - col;
-            }
             highlightMagenta[row][col] = true;
 
+            // Print the board with highlights
             printBoardWithHighlights(board, highlightYellow, highlightMagenta);
 
             return "";
@@ -385,6 +404,7 @@ public class GameplayUI implements NotificationHandler {
             return "Invalid input: " + e.getMessage();
         }
     }
+
 
     private void printBoardWithHighlights(String[][] board, boolean[][] highlightYellow, boolean[][] highlightMagenta) {
         boolean isWhitePerspective = uiHelper.getColor().equalsIgnoreCase("LIGHT");
